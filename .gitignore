@@ -1,0 +1,19 @@
+# ホワイトリスト方式: すべて無視し、`!` で許可したものだけを追跡する
+*
+
+# ディレクトリを再帰的に辿れるようにする
+!/.github/
+!/.github/**/
+
+# 許可するファイル
+!/.gitignore
+!/README.md
+!/mise.toml
+!/mise.lock
+!/.pre-commit-config.yaml
+!/renovate.json
+!/.github/PULL_REQUEST_TEMPLATE.md
+!/.github/ISSUE_TEMPLATE/bug_report.md
+!/.github/ISSUE_TEMPLATE/feature_request.md
+!/.github/workflows/prek.yml
+!/.github/workflows/gitleaks.yml
