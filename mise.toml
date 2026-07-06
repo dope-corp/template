@@ -1,5 +1,6 @@
 [tools]
 prek = "latest"
+actionlint = "latest"
 
 [env]
 # `mise.local.toml` (git 管理外) を併置すると、ローカルだけの値で上書きできる。
