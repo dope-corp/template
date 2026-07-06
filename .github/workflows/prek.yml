@@ -15,9 +15,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      # jdx/mise-action は使わない: この repo の Actions 設定は github-owned / verified
-      # creator の action しか許可しておらず (allowed_actions: selected)、個人配布の
-      # action は startup_failure になるため公式インストールスクリプトを直接叩く。
       - name: Install mise
         run: curl https://mise.run | sh
 
