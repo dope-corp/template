@@ -19,11 +19,18 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 `.gitignore` はホワイトリスト方式 (`*` で全て無視し、追跡させたいパスだけを `!` で許可) です。
 ファイルを追加した際は、対象パスを個別に `!` で許可してください。
 
-`renovate.json` は GitHub Actions・mise ツールのバージョンを自動更新する Renovate の設定です。
-有効にするには、生成後のリポジトリに対して organization 管理者が
-[Renovate GitHub App](https://github.com/apps/renovate) を個別にインストールする必要があります
-(このテンプレート自体には Bot の有効化範囲は含まれません)。ワークフローの外部依存は
-`uses:` / `container:` フィールドで固定してください (`run:` 内のシェルコマンドは更新対象外)。
+`renovate.json` は Renovate の設定です。有効にするには、生成後のリポジトリに対して
+organization 管理者が [Renovate GitHub App](https://github.com/apps/renovate) (Mend ホストの
+SaaS 版) を個別にインストールする必要があります (このテンプレート自体には Bot の有効化範囲は
+含まれません)。ワークフローの外部依存は `uses:` / `container:` フィールドで固定してください
+(`run:` 内のシェルコマンドは更新対象外)。
+
+`helpers:pinGitHubActionDigests` による GitHub Actions の SHA 更新は Mend ホスト版でも動作します。
+一方 `mise.toml` / `mise.lock` (prek, actionlint) の自動更新は **保証されません**。
+`mise.lock` の再生成 (`mise lock` の実行) は Renovate 上で `allowedUnsafeExecutions` に
+`mise` を含める必要がある unsafe execution 扱いで、これは self-hosted 限定の global 設定です。
+Mend ホスト版でこの許可がされているかは非公開のため、mise ツールのバージョン追従は
+Renovate に頼らず、`mise install` / `mise up` を手動またはスケジュール実行で行ってください。
 
 ## セットアップ
 
