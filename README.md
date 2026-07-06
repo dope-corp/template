@@ -8,6 +8,7 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 - `.github/ISSUE_TEMPLATE/bug_report.md`
 - `.github/ISSUE_TEMPLATE/feature_request.md`
 - `.github/PULL_REQUEST_TEMPLATE.md`
+- `.github/CODEOWNERS`
 - `.github/workflows/prek.yml`
 - `.github/workflows/gitleaks.yml`
 - `.github/workflows/mise-up.yml`
@@ -16,6 +17,9 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 - `renovate.json`
 
 各リポジトリの事情に合わせて、生成後に内容を編集してください。
+
+`.github/CODEOWNERS` は現状 `* @msageha` (全ファイルのレビュワー) 固定です。生成後のリポジトリでは
+実際のメンテナに書き換えてください。
 
 ## セットアップ
 
