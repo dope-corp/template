@@ -1,0 +1,55 @@
+name: mise up
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # 毎週月曜 00:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  mise-up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # jdx/mise-action は使わない: この repo の Actions 設定は github-owned / verified
+      # creator の action しか許可しておらず、個人配布の action は startup_failure になる。
+      - name: Install mise
+        run: curl https://mise.run | sh
+
+      - name: Run mise up
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          mise up --yes
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet -- mise.toml mise.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # GITHUB_TOKEN で作成した PR の pull_request トリガーは承認待ち状態になるため、
+      # write 権限者が Actions タブから "Approve and run workflows" が必要になる。
+      - name: Open pull request
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B chore/mise-up
+          git add mise.toml mise.lock
+          git commit -m "chore: mise up"
+          git push --force origin chore/mise-up
+
+          if ! gh pr view chore/mise-up >/dev/null 2>&1; then
+            gh pr create --title "chore: mise up" --base main --head chore/mise-up \
+              --body "mise up の自動実行による mise.toml / mise.lock の更新です。差分を確認してください。"
+          fi
