@@ -1,0 +1,20 @@
+[tools]
+prek = "latest"
+actionlint = "latest"
+
+[env]
+# `mise.local.toml` (git 管理外) を併置すると、ローカルだけの値で上書きできる。
+#
+# 例:
+# MY_VAR = "value"
+# _.file = ".env"
+
+[tasks.docs]
+description = "Sync the task list embedded in README.md with mise.toml"
+run = "mise generate task-docs --inject --output README.md"
+
+[hooks]
+postinstall = "prek install"
+
+[settings]
+lockfile = true
