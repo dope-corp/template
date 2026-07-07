@@ -29,6 +29,10 @@ jobs:
       # mise.toml のバージョン更新は Renovate (mise manager) に任せる。
       # ここでは pin されたバージョンのまま mise.lock の checksum/URL だけを再生成する。
       - name: Run mise lock
+        env:
+          # mise の GitHub API アクセス (リリース取得・SLSA 検証) を認証付きにして
+          # ランナー共有 IP の無認証 rate limit (60 req/h) を回避する
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           mise lock
