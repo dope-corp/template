@@ -1,5 +1,9 @@
 # template
 
+[![prek](https://github.com/dope-corp/template/actions/workflows/prek.yml/badge.svg)](https://github.com/dope-corp/template/actions/workflows/prek.yml)
+[![gitleaks](https://github.com/dope-corp/template/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/dope-corp/template/actions/workflows/gitleaks.yml)
+[![mise-lock](https://github.com/dope-corp/template/actions/workflows/mise-lock.yaml/badge.svg)](https://github.com/dope-corp/template/actions/workflows/mise-lock.yaml)
+
 dope-corp organization の新規リポジトリ作成時に使用する共通テンプレートです。
 
 新規リポジトリを作成する際、「Repository template」としてこのリポジトリを選択すると、以下のファイルが引き継がれます。
