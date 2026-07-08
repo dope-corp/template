@@ -5,6 +5,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+      - id: check-json
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: mixed-line-ending
@@ -20,3 +21,8 @@ repos:
         entry: mise run docs
         files: ^mise\.toml$
         pass_filenames: false
+      - id: dprint-fmt
+        name: Format json/yaml/markdown/toml with dprint
+        language: system
+        entry: mise exec -- dprint fmt
+        types_or: [json, yaml, markdown, toml]

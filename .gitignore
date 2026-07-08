@@ -9,6 +9,7 @@
 !/mise.toml
 !/mise.lock
 !/.pre-commit-config.yaml
+!/dprint.json
 !/renovate.json
 !/.github/CODEOWNERS
 !/.github/PULL_REQUEST_TEMPLATE.md
