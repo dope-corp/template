@@ -17,4 +17,5 @@
 !/.github/ISSUE_TEMPLATE/feature_request.md
 !/.github/workflows/prek.yaml
 !/.github/workflows/gitleaks.yaml
-!/.github/workflows/mise-up.yml
+!/.github/workflows/mise-lock.yaml
+!/.github/workflows/claude.yaml
