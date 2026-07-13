@@ -10,10 +10,6 @@
   "pre-commit": {
     "enabled": true
   },
-  "nodenv": {
-    "description": "node を使うリポジトリでは .node-version にメジャーのみを保持する。パッチ追従と mise.lock の再解決は mise-lock.yaml (週次) が行い、Renovate はメジャー更新の提案のみ担う。mise.lock は mise-lock.yaml が .node-version 変更 PR に追従 commit して同期する",
-    "enabled": true
-  },
   "customManagers": [
     {
       "customType": "regex",

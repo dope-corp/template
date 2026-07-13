@@ -6,8 +6,6 @@ on:
   pull_request:
     paths:
       - mise.toml
-      # node を使うリポジトリ (このテンプレートから生成後に .node-version を追加した場合) 向け
-      - .node-version
   workflow_dispatch:
 
 permissions:
@@ -43,9 +41,8 @@ jobs:
           install: false
           cache: false
 
-      # mise.toml / .node-version のバージョン更新は Renovate に任せる。
+      # mise.toml のバージョン更新は Renovate に任せる。
       # ここでは pin されたバージョンのまま mise.lock の checksum / URL だけを再生成する。
-      # (.node-version をメジャーのみで運用するリポジトリでは、週次実行が node のパッチ追従を兼ねる)
       - name: Run mise lock
         env:
           # mise の GitHub API アクセス (リリース取得・SLSA 検証) を認証付きにして
@@ -62,7 +59,7 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # Renovate 等が mise.toml / .node-version を変更した既存 PR には、
+      # Renovate 等が mise.toml を変更した既存 PR には、
       # 同じブランチに直接 commit して mise.lock を追従させる。
       # fork からの PR は GITHUB_TOKEN で push できないためスキップする。
       - name: Push mise.lock update to the pull request branch

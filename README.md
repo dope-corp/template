@@ -55,7 +55,7 @@ json/markdown/toml/yaml ファイルは [dprint](https://dprint.dev/) (`dprint.j
   検知ルールの更新を取り込むため、毎週月曜に main の履歴全体を再スキャンする。
 - `.github/workflows/mise-lock.yaml`: `mise.toml` に pin されたバージョンのまま `mise lock` を実行し、
   `mise.lock` の checksum/URL を最新化する。`mise.toml` のバージョン自体の更新は Renovate に任せる。
-  - `pull_request` (`mise.toml` / `.node-version` を変更する PR、主に Renovate が対象):
+  - `pull_request` (`mise.toml` を変更する PR、主に Renovate が対象):
     同じ PR のブランチに直接 commit して追従させる。
   - 毎週月曜 (`schedule`) / `workflow_dispatch`: 差分があれば `chore/mise-lock` ブランチで PR を作成する。
   - `GITHUB_TOKEN` による push / PR 作成からは workflow run が発火しない (再帰実行防止の GitHub 仕様) ため、
@@ -93,10 +93,12 @@ Node.js を使うリポジトリでは、既存の統一済みリポジトリ (d
 
 - バージョンの単一ソースとして `.node-version` を作成し、**メジャーのみ** (例: `26`) を書く。
   `.nvmrc` は作らない。Cloudflare のビルドや各種ツールもこのファイルを参照する。
-- `mise.toml` の `[settings]` にある `idiomatic_version_file_enable_tools = ["node"]` の
-  コメントアウトを解除し、mise にも `.node-version` を読ませる。
+- `mise.toml` の `[settings]` に `idiomatic_version_file_enable_tools = ["node"]` を追加し、
+  mise にも `.node-version` を読ませる。
+- `.github/workflows/mise-lock.yaml` の `pull_request` トリガーの `paths` に `.node-version` を
+  追加する (バージョン変更 PR に `mise.lock` を追従させるため)。
 - パッチバージョンの追従は mise-lock.yaml の週次実行が `mise.lock` の再解決で行い、
-  メジャー更新の提案は Renovate (nodenv manager) が行う (`renovate.json` に設定済み)。
+  メジャー更新の提案は Renovate (nodenv manager、デフォルトで有効) が行う。
 - `.gitignore` (ホワイトリスト方式) に `!/.node-version` を追記する。
 - ci.yaml / eslint / typecheck / commitlint / dprint (language: node +
   additional_dependencies) の pre-commit hook 構成は
