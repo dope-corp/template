@@ -2,10 +2,56 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests",
-    ":enablePreCommit"
+    "helpers:pinGitHubActionDigests"
   ],
   "lockFileMaintenance": {
     "enabled": true
-  }
+  },
+  "pre-commit": {
+    "enabled": true
+  },
+  "nodenv": {
+    "description": "node を使うリポジトリでは .node-version にメジャーのみを保持する。パッチ追従と mise.lock の再解決は mise-lock.yaml (週次) が行い、Renovate はメジャー更新の提案のみ担う。mise.lock は mise-lock.yaml が .node-version 変更 PR に追従 commit して同期する",
+    "enabled": true
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "workflow の container.image (digest pin + バージョンコメント) を docker datasource で更新する",
+      "managerFilePatterns": ["/^\\.github/workflows/.+\\.ya?ml$/"],
+      "matchStrings": [
+        "image:\\s+(?<depName>[a-z0-9./_-]+)@(?<currentDigest>sha256:[a-f0-9]{64})\\s+#\\s+(?<currentValue>v?\\d+\\.\\d+\\.\\d+)"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "dprint.json の公式プラグイン (dprint/dprint-plugin-*) の WASM URL を更新する。@ 以降の sha256 checksum は github-release-attachments datasource が release asset (plugin.wasm) の実ハッシュ照合で追従させる",
+      "managerFilePatterns": ["/(^|/)dprint\\.json$/"],
+      "matchStrings": [
+        "https://plugins\\.dprint\\.dev/(?<depName>[a-z0-9-]+)-(?<currentValue>\\d+\\.\\d+\\.\\d+)\\.wasm(?:@(?<currentDigest>[a-f0-9]{64}))?"
+      ],
+      "datasourceTemplate": "github-release-attachments",
+      "packageNameTemplate": "dprint/dprint-plugin-{{depName}}",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "dprint.json の g-plane プラグインの WASM URL を更新する (tag は v prefix 付きなので currentValue に含めて照合する)",
+      "managerFilePatterns": ["/(^|/)dprint\\.json$/"],
+      "matchStrings": [
+        "https://plugins\\.dprint\\.dev/g-plane/(?<depName>[a-z0-9_-]+)-(?<currentValue>v\\d+\\.\\d+\\.\\d+)\\.wasm(?:@(?<currentDigest>[a-f0-9]{64}))?"
+      ],
+      "datasourceTemplate": "github-release-attachments",
+      "packageNameTemplate": "g-plane/{{depName}}",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": ".pre-commit-config.yaml の additional_dependencies にある dprint の pin を npm datasource で更新する (node を使うリポジトリで dprint を devDependencies 管理に切り替えた場合に効く)",
+      "managerFilePatterns": ["/(^|/)\\.pre-commit-config\\.yaml$/"],
+      "matchStrings": ["\"(?<depName>dprint)@(?<currentValue>\\d+\\.\\d+\\.\\d+)\""],
+      "datasourceTemplate": "npm"
+    }
+  ]
 }

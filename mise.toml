@@ -1,5 +1,7 @@
+# ツールのバージョンは Renovate (mise manager) が bump する。latest 指定にしない。
+# checksum の再解決 (と node を使う場合のパッチ追従) は mise-lock.yaml (週次) が行う。
 [tools]
-prek = "0.4.8"
+prek = "0.4.9"
 actionlint = "1.7.12"
 dprint = "0.55.1"
 
@@ -19,3 +21,6 @@ postinstall = "prek install"
 
 [settings]
 lockfile = true
+# node を使うリポジトリでは .node-version (メジャーのみ) を単一ソースにして
+# 以下を有効化する (README の「node を利用する場合」参照)
+# idiomatic_version_file_enable_tools = ["node"]
