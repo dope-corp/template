@@ -18,24 +18,24 @@ concurrency:
 jobs:
   claude:
     # @claude メンション + author_association による一次フィルタ。
-    # COLLABORATOR は read-only の outside collaborator も含みうるため、これは
-    # 起動回数を減らすための粗いゲートにすぎない。書き込み権限の厳密な検証は
-    # claude-code-action 内部で行われる (src/entrypoints/prepare.ts が
-    # src/github/validation/permissions.ts の checkWritePermissions を呼び、
-    # collaborator permission が write/admin 以外なら実行を拒否する)
+    # 起動は OWNER / MEMBER のみに許可する (COLLABORATOR は read-only の
+    # outside collaborator も含みうるため許可しない)。
+    # なお書き込み権限の厳密な検証は claude-code-action 内部でも行われる
+    # (src/entrypoints/prepare.ts が src/github/validation/permissions.ts の
+    # checkWritePermissions を呼び、write/admin 以外なら実行を拒否する)
     if: |
       (github.event_name == 'issue_comment' &&
         contains(github.event.comment.body, '@claude') &&
-        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)) ||
+        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association)) ||
       (github.event_name == 'pull_request_review_comment' &&
         contains(github.event.comment.body, '@claude') &&
-        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)) ||
+        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association)) ||
       (github.event_name == 'pull_request_review' &&
         contains(github.event.review.body, '@claude') &&
-        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)) ||
+        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.review.author_association)) ||
       (github.event_name == 'issues' &&
         (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')) &&
-        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association))
+        contains(fromJSON('["OWNER", "MEMBER"]'), github.event.issue.author_association))
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
