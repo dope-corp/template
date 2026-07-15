@@ -123,9 +123,11 @@ Node.js を使うリポジトリでは、既存の統一済みリポジトリ (d
 REPO=dope-corp/<repo>
 
 # merge 方式: squash のみ / squash タイトルは COMMIT_OR_PR_TITLE /
-# merge 後にブランチ自動削除 / wiki off
+# merge 後にブランチ自動削除 / wiki off / auto-merge 有効化
+# (auto-merge は organization レベルのトグルが無く、リポジトリ単位の設定のため必須)
 gh api -X PATCH "repos/$REPO" --input - <<'JSON'
 {
+  "allow_auto_merge": true,
   "allow_merge_commit": false,
   "allow_rebase_merge": false,
   "allow_squash_merge": true,

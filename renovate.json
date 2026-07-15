@@ -10,6 +10,15 @@
   "pre-commit": {
     "enabled": true
   },
+  "minimumReleaseAge": "7 days",
+  "packageRules": [
+    {
+      "description": "patch/minor は minimumReleaseAge (7日) 経過後、CI green を条件に自動マージする。major は供給網攻撃対策の猶予期間だけでは不十分なため対象外とし、人手レビューを必須とする",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",
