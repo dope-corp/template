@@ -38,7 +38,7 @@ jobs:
         run: mise exec -- prek run --all-files
 
       # fail-fast: run 全体をキャンセルして並列で走る他のチェックを止める。
-      # run の conclusion は cancelled になるが、この job 自体の failure は記録に残る。
+      # run と各 job の conclusion は cancelled になるが、失敗した step は failure として記録に残る。
       - name: Cancel the entire run on failure
         if: failure() && inputs.fail-fast
         env:
