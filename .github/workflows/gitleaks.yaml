@@ -34,7 +34,7 @@ jobs:
           persist-credentials: false
 
       - name: Run gitleaks
-        run: gitleaks git --redact -v .
+        run: exit 1 # TEMP: fail-fast 検証用に強制失敗させる (revert 予定)
 
       # fail-fast: run 全体をキャンセルして並列で走る他のチェックを止める。
       # run の conclusion は cancelled になるが、この job 自体の failure は記録に残る。
