@@ -35,7 +35,7 @@ jobs:
           cache: true
 
       - name: Run prek
-        run: sleep 120 && mise exec -- prek run --all-files # TEMP: fail-fast 検証用に遅延させる (revert 予定)
+        run: mise exec -- prek run --all-files
 
       # fail-fast: run 全体をキャンセルして並列で走る他のチェックを止める。
       # run の conclusion は cancelled になるが、この job 自体の failure は記録に残る。
