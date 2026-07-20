@@ -95,13 +95,10 @@ jobs:
       # GITHUB_TOKEN による push / PR 作成からは新しい workflow run が発火しない
       # (再帰実行防止の GitHub 仕様)。workflow_dispatch はその例外なので、
       # 更新したブランチへ CI 系 workflow を明示的に起動して required check を付ける。
-      # ci.yaml (build / test) を追加したリポジトリでは dispatch 対象に ci.yaml も加えること。
+      # CI 系チェック (prek / gitleaks) は ci.yaml に集約されているため ci.yaml のみ起動する。
       - name: Dispatch CI workflows for the updated branch
         if: steps.diff.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || 'chore/mise-lock' }}
-        run: |
-          for wf in prek.yaml gitleaks.yaml; do
-            gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref "$TARGET_REF"
-          done
+        run: gh workflow run ci.yaml --repo "$GITHUB_REPOSITORY" --ref "$TARGET_REF"
