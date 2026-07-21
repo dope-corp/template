@@ -1,9 +1,11 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
+  # push トリガーは置かない: merge 後の main での再実行は PR で検証済みのため不要
+  # (secret scan の main 全履歴は gitleaks.yaml の週次 schedule が再スキャンする)。
+  # デフォルト types の明示: closed 等 CI が不要な PR イベントでは走らせない
   pull_request:
+    types: [opened, synchronize, reopened]
   # mise-lock.yaml が GITHUB_TOKEN で push / 作成する PR には workflow run が自動発火しないため、
   # PR head ブランチへ明示的に dispatch できるようにする
   workflow_dispatch:
