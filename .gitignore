@@ -20,3 +20,4 @@
 !/.github/workflows/gitleaks.yaml
 !/.github/workflows/mise-lock.yaml
 !/.github/workflows/claude.yaml
+!/.github/workflows/claude-sweep.yaml
