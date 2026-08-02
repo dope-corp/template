@@ -8,6 +8,7 @@
 !/README.md
 !/mise.toml
 !/mise.lock
+!/fnox.toml
 !/.pre-commit-config.yaml
 !/dprint.json
 !/renovate.json

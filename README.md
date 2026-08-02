@@ -18,6 +18,7 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 - `.github/workflows/mise-lock.yaml`
 - `.github/workflows/claude.yaml`
 - `mise.toml` / `mise.lock`
+- `fnox.toml`
 - `.pre-commit-config.yaml`
 - `dprint.json`
 - `renovate.json`
