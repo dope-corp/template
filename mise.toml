@@ -4,7 +4,7 @@
 prek = "0.4.11"
 actionlint = "1.7.12"
 dprint = "0.55.2"
-fnox = "1.31.1"
+fnox = "v1.32.0"
 
 [env]
 # `mise.local.toml` (git 管理外) を併置すると、ローカルだけの値で上書きできる。
