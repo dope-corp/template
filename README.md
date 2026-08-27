@@ -185,7 +185,7 @@ Settings → Advanced Security で確認する (org の新規リポジトリ既�
 <!-- mise-tasks -->
 ## `docs`
 
-- **Usage**: `docs`
+- **Usage:** `docs`
 
 Sync the task list embedded in README.md with mise.toml
 <!-- /mise-tasks -->
