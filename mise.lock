@@ -47,133 +47,133 @@ url_api = "https://api.github.com/repos/rhysd/actionlint/releases/assets/3849249
 provenance = "github-attestations"
 
 [[tools.dprint]]
-version = "0.55.2"
+version = "0.56.0"
 backend = "aqua:dprint/dprint"
 
 [tools.dprint."platforms.linux-arm64"]
-checksum = "sha256:299923f2b56d66756ad2c7c220650c72f26437fd3f48b3fb6c0df664073eb1d1"
-url = "https://github.com/dprint/dprint/releases/download/0.55.2/dprint-aarch64-unknown-linux-gnu.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/477041360"
+checksum = "sha256:a0dcf153cce38096f43bdde36fdd32cfd11c2227b6a04c2202fa83573fe517a6"
+url = "https://github.com/dprint/dprint/releases/download/0.56.0/dprint-aarch64-unknown-linux-gnu.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/519466715"
 
 [tools.dprint."platforms.linux-arm64-musl"]
-checksum = "sha256:f0101217dd0abc94f1ac01b83d306d0288aeee8a501e8614a5e2bbe037500be0"
-url = "https://github.com/dprint/dprint/releases/download/0.55.2/dprint-aarch64-unknown-linux-musl.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/477041358"
+checksum = "sha256:2e7d50e342d9d9d85b811635a04f3d49abdf7ec96d5b346cda932a7c4d42a7ab"
+url = "https://github.com/dprint/dprint/releases/download/0.56.0/dprint-aarch64-unknown-linux-musl.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/519466726"
 
 [tools.dprint."platforms.linux-x64"]
-checksum = "sha256:d7ccde62d789dfb048717252d259e21253e32feffe4cbf2dab9954eeab492219"
-url = "https://github.com/dprint/dprint/releases/download/0.55.2/dprint-x86_64-unknown-linux-gnu.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/477041352"
+checksum = "sha256:49fe9d970cdbe0f742e18187c221a7a1dd985d35d4fa9bf4740f7a261c08d96c"
+url = "https://github.com/dprint/dprint/releases/download/0.56.0/dprint-x86_64-unknown-linux-gnu.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/519466718"
 
 [tools.dprint."platforms.linux-x64-musl"]
-checksum = "sha256:45fc0eef3216af21c4c22c6e7e233aa45c3080fac07b6e94db7008a5c8e5c67a"
-url = "https://github.com/dprint/dprint/releases/download/0.55.2/dprint-x86_64-unknown-linux-musl.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/477041351"
+checksum = "sha256:e958bfa3fec5256e72c2e4e028fa5674e43023eaff80d704ca96827af2eba240"
+url = "https://github.com/dprint/dprint/releases/download/0.56.0/dprint-x86_64-unknown-linux-musl.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/519466719"
 
 [tools.dprint."platforms.macos-arm64"]
-checksum = "sha256:e9ba8ed7988f3350501a8cf8af92da616cdec8d9d5c831c069293c587311b49d"
-url = "https://github.com/dprint/dprint/releases/download/0.55.2/dprint-aarch64-apple-darwin.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/477041350"
+checksum = "sha256:79f5c80a3ddebb4717a89a25a79ec1c50947d4cef141df243757925cb47d32e1"
+url = "https://github.com/dprint/dprint/releases/download/0.56.0/dprint-aarch64-apple-darwin.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/519466721"
 
 [tools.dprint."platforms.macos-x64"]
-checksum = "sha256:b7074cf6c814f995b783b5baa7e516b34e783c42c9baf7af553dbad731adb3a7"
-url = "https://github.com/dprint/dprint/releases/download/0.55.2/dprint-x86_64-apple-darwin.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/477041364"
+checksum = "sha256:466dd67e15fca266f3749008ef5d23ea7a6c657ef8204257dbb8c23636fc9aca"
+url = "https://github.com/dprint/dprint/releases/download/0.56.0/dprint-x86_64-apple-darwin.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/519466717"
 
 [tools.dprint."platforms.windows-x64"]
-checksum = "sha256:12e8c26abc8c436223e70f5a30a2864001c92fa356a859eb93e06b97ab7dbd12"
-url = "https://github.com/dprint/dprint/releases/download/0.55.2/dprint-x86_64-pc-windows-msvc.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/477041355"
+checksum = "sha256:cbcb0c6fdbb72289e895c3857720eb769046d42069973f38655b6aee16c01c73"
+url = "https://github.com/dprint/dprint/releases/download/0.56.0/dprint-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/519466712"
 
 [[tools.fnox]]
-version = "1.32.0"
+version = "1.33.1"
 backend = "github:jdx/fnox"
 
 [tools.fnox."platforms.linux-arm64"]
-checksum = "sha256:7b6287489b780ebd474fa51c026a7df43ee9ad684fcbe13ad3a75b3e1d4a276b"
-url = "https://github.com/jdx/fnox/releases/download/v1.32.0/fnox-aarch64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/497823870"
+checksum = "sha256:ddb2bd1514a2a415f8cbd9113e260ad068a14a418b3534045e23525c60d0fae5"
+url = "https://github.com/jdx/fnox/releases/download/v1.33.1/fnox-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/517968664"
 provenance = "github-attestations"
 
 [tools.fnox."platforms.linux-arm64-musl"]
-checksum = "sha256:2d9336fd2b508880e91933147f7bfcf9269774c81e685f4e8bc9c4f16f8fefa3"
-url = "https://github.com/jdx/fnox/releases/download/v1.32.0/fnox-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/497823871"
+checksum = "sha256:4afa354751a4977c564485c1eec8f202965e9055c83f03ae40356bfaf9f4657e"
+url = "https://github.com/jdx/fnox/releases/download/v1.33.1/fnox-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/517968661"
 provenance = "github-attestations"
 
 [tools.fnox."platforms.linux-x64"]
-checksum = "sha256:7d619e0dc30a1c229a58356f04bcae326255d6a19e78c256bd06b239429728df"
-url = "https://github.com/jdx/fnox/releases/download/v1.32.0/fnox-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/497823899"
+checksum = "sha256:548ba556f15c3f4046a33fe91b4d3eea15872de5fcdbe7d38a7dac6a9eab34c2"
+url = "https://github.com/jdx/fnox/releases/download/v1.33.1/fnox-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/517968687"
 provenance = "github-attestations"
 provenance_verified = true
 
 [tools.fnox."platforms.linux-x64-musl"]
-checksum = "sha256:f47e91a4b70cb4f54deb418605b7015f7509bd578a470df1f2ba531b1df80975"
-url = "https://github.com/jdx/fnox/releases/download/v1.32.0/fnox-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/497823900"
+checksum = "sha256:d4956442c00fbdc314b7463cabbd0d1c656de943638ba13d5a486d2283be521e"
+url = "https://github.com/jdx/fnox/releases/download/v1.33.1/fnox-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/517968695"
 provenance = "github-attestations"
 
 [tools.fnox."platforms.macos-arm64"]
-checksum = "sha256:8eac892958b54b01146e103d0aaaf80ca09c4bd77652930a7864da0b7eacd243"
-url = "https://github.com/jdx/fnox/releases/download/v1.32.0/fnox-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/497823872"
+checksum = "sha256:80a3002841e69aa0be87820e49d25776a5c3ef96c22942aee28f910bf8aba5f6"
+url = "https://github.com/jdx/fnox/releases/download/v1.33.1/fnox-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/517968663"
 provenance = "github-attestations"
 
 [tools.fnox."platforms.macos-x64"]
-checksum = "sha256:ec75551b74cfbe62f592aaa7d6d8d29f4bdd8eaeaca33c0aaab262600c7e4ed5"
-url = "https://github.com/jdx/fnox/releases/download/v1.32.0/fnox-x86_64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/497823869"
+checksum = "sha256:1e6f40faf1cc0aa8406a131de755ac9fad8d87c8ccea7bcbc9b8bfdad861ed5f"
+url = "https://github.com/jdx/fnox/releases/download/v1.33.1/fnox-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/517968665"
 provenance = "github-attestations"
 
 [tools.fnox."platforms.windows-x64"]
-checksum = "sha256:d81bf1305a64f2faa3a1c9316074c3295bcfb7792085d90f8c383b968f67a7be"
-url = "https://github.com/jdx/fnox/releases/download/v1.32.0/fnox-x86_64-pc-windows-msvc.zip"
-url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/497823892"
+checksum = "sha256:b59d04c326315cacbded505685205e501a0cee106a01d92fd860cb6661f9aacb"
+url = "https://github.com/jdx/fnox/releases/download/v1.33.1/fnox-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/517968685"
 provenance = "github-attestations"
 
 [[tools.prek]]
-version = "0.4.12"
+version = "0.4.14"
 backend = "aqua:j178/prek"
 
 [tools.prek."platforms.linux-arm64"]
-checksum = "sha256:a39af72adf09a8df4e1d96bd2daa5b537bf3204dee87457eaeece06cd23dda31"
-url = "https://github.com/j178/prek/releases/download/v0.4.12/prek-aarch64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/499978733"
+checksum = "sha256:a0302d10599f40eb1b46bfe28cfe04c2638f0af858787d21c5904acc8047aaff"
+url = "https://github.com/j178/prek/releases/download/v0.4.14/prek-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/517620521"
 provenance = "github-attestations"
 
 [tools.prek."platforms.linux-arm64-musl"]
-checksum = "sha256:f3be7601f991e05f161023d231198d966ea2afdb6bc6dd15d253d751674d6ab1"
-url = "https://github.com/j178/prek/releases/download/v0.4.12/prek-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/499978731"
+checksum = "sha256:27a873abf78df8ec842829f6def4356f1f10c8ddf1741c6b2b3ba0c1e1e93f95"
+url = "https://github.com/j178/prek/releases/download/v0.4.14/prek-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/517620523"
 provenance = "github-attestations"
 
 [tools.prek."platforms.linux-x64"]
-checksum = "sha256:f2476eae75463f96dd26c78466c4e8f42031ff99214abf3d208f1cf04a0e4ddf"
-url = "https://github.com/j178/prek/releases/download/v0.4.12/prek-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/499978786"
+checksum = "sha256:d1eacb826b9f71ce9098636d2c3e96df0ed1cf08c9c17c57bf358b401f5a995d"
+url = "https://github.com/j178/prek/releases/download/v0.4.14/prek-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/517620600"
 provenance = "github-attestations"
 
 [tools.prek."platforms.linux-x64-musl"]
-checksum = "sha256:3321ec6e4d873fbf41bef55d11b3f269fa91cbb87b19f18211df7c1bd061ac8a"
-url = "https://github.com/j178/prek/releases/download/v0.4.12/prek-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/499978791"
+checksum = "sha256:388f2e5216684c22e635dc1bde1bac5bd008a5dfc21c754ced382d19ff31413b"
+url = "https://github.com/j178/prek/releases/download/v0.4.14/prek-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/517620606"
 provenance = "github-attestations"
 
 [tools.prek."platforms.macos-arm64"]
-checksum = "sha256:cef66b9641a1c9ac61518edb13c2a7b440f3f1748e4bd60f2514a82bc1f2bd30"
-url = "https://github.com/j178/prek/releases/download/v0.4.12/prek-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/499978720"
+checksum = "sha256:87f7fb2b99871820eb352d9a2327461d25affe354d6d48c4edf3a34f360c6be8"
+url = "https://github.com/j178/prek/releases/download/v0.4.14/prek-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/517620513"
 provenance = "github-attestations"
 
 [tools.prek."platforms.macos-x64"]
-checksum = "sha256:783bf6b8d036e80cd43dd7c037d0888648c249f9c3c6045f0dd6eb135e11556e"
-url = "https://github.com/j178/prek/releases/download/v0.4.12/prek-x86_64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/499978780"
+checksum = "sha256:59073820f5145cea2fa91b7e4256bbab6ed44de364d4b6809311d7ee9653d3b7"
+url = "https://github.com/j178/prek/releases/download/v0.4.14/prek-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/517620585"
 provenance = "github-attestations"
 
 [tools.prek."platforms.windows-x64"]
-checksum = "sha256:1ea049702009636296ca845e91b336aeb203d47df8ce500eb388672c8199d57b"
-url = "https://github.com/j178/prek/releases/download/v0.4.12/prek-x86_64-pc-windows-msvc.zip"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/499978783"
+checksum = "sha256:284eb3b185788fbb5c1b53b1e2217c744be44debaff88efd305b1947df6f0b82"
+url = "https://github.com/j178/prek/releases/download/v0.4.14/prek-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/517620593"
 provenance = "github-attestations"
