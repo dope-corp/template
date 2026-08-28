@@ -3,7 +3,7 @@
 [tools]
 prek = "0.4.14"
 actionlint = "1.7.12"
-dprint = "0.56.0"
+dprint = "0.56.1"
 fnox = "v1.33.1"
 
 [env]
