@@ -17,7 +17,6 @@
 !/.editorconfig
 !/README.md
 !/CLAUDE.md
-!/SECURITY.md
 !/mise.toml
 !/mise.lock
 !/fnox.toml

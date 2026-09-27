@@ -14,7 +14,6 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 - `.github/workflows/ci.yaml` (prek / gitleaks)
 - `.github/workflows/claude.yaml` / `claude-sweep.yaml` (Claude Code)
 - `CLAUDE.md` (Claude Code に渡すリポジトリの規約・検証手順)
-- `SECURITY.md` (脆弱性の報告先)
 - `mise.toml` / `mise.lock`
 - `fnox.toml`
 - `.pre-commit-config.yaml` / `commitlint.config.mjs`
@@ -257,12 +256,6 @@ JSON
 ```
 
 validity checks は Update a repository API の入力に無いため、Settings → Advanced Security → Secret Protection で有効化する。
-
-`SECURITY.md` が案内する非公開の脆弱性報告 (「Report a vulnerability」) を使えるようにする。
-
-```sh
-gh api -X PUT "repos/$REPO/private-vulnerability-reporting"
-```
 
 ### private リポジトリで行う設定と制約
 
