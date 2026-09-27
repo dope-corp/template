@@ -6,21 +6,31 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 
 新規リポジトリを作成する際、「Repository template」としてこのリポジトリを選択すると、以下のファイルが引き継がれます。
 
-- `.gitignore`
+- `.gitignore` / `.gitattributes` / `.editorconfig`
 - `.github/CODEOWNERS`
 - `.github/PULL_REQUEST_TEMPLATE.md`
 - `.github/ISSUE_TEMPLATE/bug_report.yaml` / `feature_request.yaml` (issue forms。org の issue type Bug / Feature を付ける)
+- `.github/ISSUE_TEMPLATE/config.yml` (テンプレートを使わない blank issue を無効化)
 - `.github/workflows/ci.yaml` (prek / gitleaks)
 - `.github/workflows/claude.yaml` / `claude-sweep.yaml` (Claude Code)
+- `CLAUDE.md` (Claude Code に渡すリポジトリの規約・検証手順)
+- `SECURITY.md` (脆弱性の報告先)
 - `mise.toml` / `mise.lock`
 - `fnox.toml`
-- `.pre-commit-config.yaml`
+- `.pre-commit-config.yaml` / `commitlint.config.mjs`
 - `dprint.json`
 - `renovate.json`
 
-各リポジトリの事情に合わせて、生成後に内容を編集してください。
+各リポジトリの事情に合わせて、生成後に内容を編集してください。次のものはリポジトリ固有の値なので必ず書き換える。
+
+- `README.md`: 本文と CI badge の URL (`dope-corp/template` の部分)。
+- `.github/CODEOWNERS`: reviewer。
+- `CLAUDE.md`: プロジェクトの目的・ビルド / テスト手順・固有の規約。
+- self-hosted runner を使う場合は各 workflow の `runs-on`。
+
 引き継がれるのは**ファイルのみ**で、リポジトリ設定・ruleset は引き継がれないため、
 生成後に「[GitHub リポジトリ設定](#github-リポジトリ設定)」の初期設定を行ってください。
+生成後に template 側で更新された共通ファイルを取り込む手順は「[template との同期](#template-との同期)」を参照。
 
 `.gitignore` はホワイトリスト方式 (`*` で全て無視し、`!` で許可したものだけを追跡する) になっている。
 新しく追跡したいファイルを追加する場合は、対応する `!` の行を追記する必要がある。
@@ -35,7 +45,8 @@ mise install  # tools をインストールし、pre-commit hook をセットア
 ```
 
 `mise install` を実行すると `[hooks] postinstall` により `prek install` が自動実行され、
-`.git/hooks/pre-commit` がセットアップされる。
+`.git/hooks/pre-commit` と `.git/hooks/commit-msg` がセットアップされる。
+`.pre-commit-config.yaml` の hook 構成が変わったあとの既存 clone では `mise exec -- prek install` を再実行する。
 
 ## ツール
 
@@ -52,7 +63,13 @@ mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシー�
 - [dprint](https://dprint.dev/): json / markdown / toml / yaml のフォーマッタ (`dprint-fmt` hook)。
   plugin の WASM URL は `dprint.json` に `url@sha256` の checksum 付きで pin する。
 - [actionlint](https://github.com/rhysd/actionlint): workflow の静的検査 (`actionlint-system` hook)。
-- [gitleaks](https://github.com/gitleaks/gitleaks): シークレットスキャン (CI で実行)。
+  `run:` スクリプトの検査に [shellcheck](https://github.com/koalaman/shellcheck) を使う。actionlint は PATH に
+  shellcheck が無いとその検査を黙って省くため、ローカルと CI で結果が変わらないように mise で pin している。
+- [gitleaks](https://github.com/gitleaks/gitleaks): シークレットスキャン。pre-commit hook (`gitleaks` hook) が
+  staged 差分を、CI の `gitleaks` job がコミット履歴全体を対象にする。
+- [commitlint](https://commitlint.js.org/): commit message を
+  [Conventional Commits](https://www.conventionalcommits.org/) で検査する commit-msg hook (`commitlint` hook)。
+  ルールは `commitlint.config.mjs`。prek が node を自前で用意するため、リポジトリに node は不要。
 - [fnox](https://fnox.jdx.dev/): 暗号化ファイル・パスワードマネージャ・クラウドから secret を読み込み、
   環境変数としてコマンドに渡す secret manager。`fnox.toml` の `[daemon]` は、解決済みの secret を
   メモリにキャッシュする daemon を有効化し、`idle_timeout` (12h) 無操作で終了させる設定。
@@ -77,6 +94,10 @@ mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシー�
 
 major 以外の更新は 1 つの PR に集約する。このうち minor / patch は `minimumReleaseAge` (7 日) 経過後、
 CI green を条件に自動マージする。major は個別 PR で人手レビューする。
+
+merge は Renovate 自身が PR の全 status check の成功を確認してから行う (`platformAutomerge: false`)。
+GitHub の auto-merge 機能に任せると、required status check の無いリポジトリでは CI の完了を待たずに
+merge される (このリポジトリでも実際に起きた) ため使わない。
 
 ## CI
 
@@ -119,14 +140,15 @@ issue として起票する。修正 PR は作らない。
 
 ### secret
 
-実行には secret `CLAUDE_CODE_OAUTH_TOKEN` が必要だが、**dope-corp では organization レベルの
-secret (visibility: all) として設定済みのため、organization 内のリポジトリでは追加設定は不要**。
-organization 外へファイルを流用する場合や、リポジトリ単位でトークンを分けたい場合のみ以下を実行する
-(リポジトリ secret は organization secret より優先される)。
+実行には secret `CLAUDE_CODE_OAUTH_TOKEN` が必要。dope-corp では organization secret (visibility: all)
+として設定済みだが、GitHub Free plan では **private リポジトリから organization secret を参照できない**。
+public リポジトリでは追加設定不要、private リポジトリでは以下でリポジトリ secret として設定する
+(リポジトリ secret は organization secret より優先される)。未設定のまま workflow が動くと
+`CLAUDE_CODE_OAUTH_TOKEN ... is required` で失敗する。
 
 ```sh
 claude setup-token   # Claude Code の OAuth トークンを発行
-gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo <owner>/<repo>
+gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo dope-corp/<repo>
 ```
 
 ## node を利用する場合
@@ -149,29 +171,30 @@ Node.js を使うリポジトリでは、既存の統一済みリポジトリ (d
 
 ## GitHub リポジトリ設定
 
+dope-corp は GitHub Free plan のため、**private リポジトリでは branch protection / ruleset・organization secret・
+secret scanning が使えない** (いずれも Team plan 以上の機能)。public リポジトリでは使える。
+以下は共通の設定と、public / private それぞれで行うことに分けて書く。
+
 ### organization レベルで設定済みのもの (リポジトリ側の作業不要)
 
 - Actions の許可ポリシー: `allowed_actions: selected`。GitHub 公式 / verified creator に加え、
   `patterns_allowed` で `jdx/mise-action@*` と `anthropics/claude-code-action@*` を許可。
   外部 action の SHA pin は必須 (`sha_pinning_required: true`)。
-- org ruleset「Protect main branch」: 全リポジトリの main が対象。PR 必須・squash merge 限定・
-  ブランチ削除禁止・linear history。org レベルの ruleset なので**個別リポジトリから変更しないこと**。
-- org secret `CLAUDE_CODE_OAUTH_TOKEN` (visibility: all)。
+- GitHub Actions (`GITHUB_TOKEN`) からの PR 作成・承認は禁止。workflow で PR を作る設計にしない。
+- org secret `CLAUDE_CODE_OAUTH_TOKEN` (visibility: all)。参照できるのは public リポジトリのみ (上記の plan 制限)。
 - org の issue types: Bug / Feature / Task。issue form の `type:` から参照する。
 
-### リポジトリ生成後に初回に行う設定
+### リポジトリ生成後に初回に行う設定 (public / private 共通)
 
-2026-07 に全リポジトリへ統一適用した設定。テンプレートからは引き継がれないため、生成のたびに実行する。
+テンプレートからは引き継がれないため、生成のたびに実行する。
 
 ```sh
 REPO=dope-corp/<repo>
 
 # merge 方式: squash のみ / squash タイトルは COMMIT_OR_PR_TITLE /
-# merge 後にブランチ自動削除 / wiki off / auto-merge 有効化
-# (auto-merge は organization レベルのトグルが無く、リポジトリ単位の設定のため必須)
+# merge 後にブランチ自動削除 / wiki off
 gh api -X PATCH "repos/$REPO" --input - <<'JSON'
 {
-  "allow_auto_merge": true,
   "allow_merge_commit": false,
   "allow_rebase_merge": false,
   "allow_squash_merge": true,
@@ -181,18 +204,34 @@ gh api -X PATCH "repos/$REPO" --input - <<'JSON'
   "has_wiki": false
 }
 JSON
+```
 
-# main への merge に CI green を必須化する repo ruleset。
-# required checks は ci.yaml の job 名に合わせる: `verify` job を追加したら
-# {"context": "verify", "integration_id": 15368} も加える。
+### public リポジトリで行う設定
+
+main を PR 必須・CI green 必須・squash merge 限定・force push / 削除禁止・linear history にする ruleset を作る。
+required checks は `ci.yaml` の job 名に合わせる: `verify` job を追加したら
+`{"context": "verify", "integration_id": 15368}` も加える。
+
+```sh
 gh api -X POST "repos/$REPO/rulesets" --input - <<'JSON'
 {
-  "name": "Require CI green on main",
+  "name": "Protect main",
   "target": "branch",
   "enforcement": "active",
   "bypass_actors": [],
   "conditions": {"ref_name": {"include": ["refs/heads/main"], "exclude": []}},
   "rules": [
+    {"type": "deletion"},
+    {"type": "non_fast_forward"},
+    {"type": "required_linear_history"},
+    {"type": "pull_request", "parameters": {
+      "required_approving_review_count": 0,
+      "dismiss_stale_reviews_on_push": false,
+      "require_code_owner_review": false,
+      "require_last_push_approval": false,
+      "required_review_thread_resolution": false,
+      "allowed_merge_methods": ["squash"]
+    }},
     {"type": "required_status_checks", "parameters": {
       "do_not_enforce_on_create": false,
       "strict_required_status_checks_policy": false,
@@ -204,10 +243,45 @@ gh api -X POST "repos/$REPO/rulesets" --input - <<'JSON'
   ]
 }
 JSON
+
+# secret scanning: push protection に加え、non-provider patterns も有効化する
+gh api -X PATCH "repos/$REPO" --input - <<'JSON'
+{
+  "security_and_analysis": {
+    "secret_scanning": {"status": "enabled"},
+    "secret_scanning_push_protection": {"status": "enabled"},
+    "secret_scanning_non_provider_patterns": {"status": "enabled"}
+  }
+}
+JSON
 ```
 
-secret scanning (push protection / non-provider patterns / validity checks) が有効になっているかを
-Settings → Advanced Security で確認する (org の新規リポジトリ既定で有効化されていない場合は個別に有効化する)。
+validity checks は Update a repository API の入力に無いため、Settings → Advanced Security → Secret Protection で有効化する。
+
+`SECURITY.md` が案内する非公開の脆弱性報告 (「Report a vulnerability」) を使えるようにする。
+
+```sh
+gh api -X PUT "repos/$REPO/private-vulnerability-reporting"
+```
+
+### private リポジトリで行う設定と制約
+
+- 上記の ruleset は作れない (API は `Upgrade to GitHub Pro or make this repository public` で 403 になる)。
+  main への直 push や CI 未完了での merge を GitHub 側で止められないため、「変更は PR 経由、CI green を
+  確認して merge」を運用ルールとして守る。Renovate は `platformAutomerge: false` により CI green を待つ。
+  直 push も検査したい場合は `ci.yaml` に `push: branches: [main]` トリガーを追加する (事後検出であり merge は止められない)。
+- organization secret を参照できないため、Claude Code 用の secret をリポジトリに設定する (「[secret](#secret)」参照)。
+- secret scanning / push protection は使えない。commit 前の検知は pre-commit hook の gitleaks、
+  commit 後の検知は CI の `gitleaks` job が担う。
+- CODEOWNERS による reviewer の自動割当は働かない (ファイル自体は Team plan へ移行したときにそのまま使える)。
+
+## template との同期
+
+template のファイルは生成時にコピーされるだけで、その後 template 側で入った更新は自動では届かない。
+生成先で `mise run template-diff` を実行すると、共通ファイル (workflow・hook 設定・Renovate 設定・dprint 設定等)
+を template の main と比較して unified diff を表示する。差分にはそのリポジトリ固有の変更も混ざるので、
+取り込むものは手で選ぶ。`README.md` / `.github/CODEOWNERS` / `CLAUDE.md` / `mise.lock` は
+リポジトリ固有に書き換える前提のため比較対象外。
 
 ## 環境変数
 
@@ -232,5 +306,11 @@ Settings → Advanced Security で確認する (org の新規リポジトリ既�
 - **Usage:** `docs`
 
 Sync the task list embedded in README.md with mise.toml
+
+## `template-diff`
+
+- **Usage:** `template-diff`
+
+Diff shared files against dope-corp/template main
 <!-- /mise-tasks -->
 <!-- dprint-ignore-end -->
