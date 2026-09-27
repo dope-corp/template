@@ -7,6 +7,14 @@ dprint = "0.57.4"
 fnox = "v1.35.2"
 gitleaks = "8.30.1"
 
+[env]
+# ディレクトリ単位の環境変数をここに定義する。ローカルだけの値は mise.local.toml に書くと
+# 上書きできる (ホワイトリスト方式の .gitignore により追跡されない)。
+#
+# 例:
+# MY_VAR = "value"
+# _.file = ".env"  # .env ファイルを読み込む
+
 [tasks.docs]
 description = "Sync the task list embedded in README.md with mise.toml"
 run = "mise generate task-docs --inject --output README.md"
