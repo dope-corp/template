@@ -12,8 +12,10 @@ concurrency:
 # 前回レビュー済み地点を tag (claude-reviewed) で記録し、そこから HEAD までの
 # 差分だけをレビューして issue を起票する。修正 PR は作らない (issue が終点)。
 # Claude を動かす review job には job の permissions に閉じた github.token だけを渡し、
-# tag の更新 (contents: write) は Claude を通らない別 job に分離する
-# (prompt injection 時の影響範囲を issue 起票に限定する)。
+# tag の更新 (contents: write) は Claude を通らない別 job に分離する。
+# これで閉じるのは GitHub token 経由のリポジトリ書き込みまで。review job には issues: write の token と
+# Claude の OAuth credential が残るため、prompt injection 時の issue 操作・credential 露出は
+# --allowedTools による Bash の制限で緩和するにとどまる。
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -88,8 +90,8 @@ jobs:
                - correctness: バグ、エッジケースの見落とし、エラーハンドリングの欠落、レグレッション
                - security: 入力検証、認証・認可、secret の扱い、危険なコマンド実行
                - simplification: コードの重複、既存ユーティリティの再利用漏れ、不要な複雑さ、非効率な実装
-            3. 起票前に重複排除する: `gh issue list --label claude-sweep --state all --limit 100` で
-               過去の指摘を確認し、同一の問題 (同じ箇所・同じ趣旨) は起票しない。close 済みで
+            3. 起票前に重複排除する: `gh issue list --label claude-sweep --state all --limit 1000` で
+               過去の指摘を全件確認し、同一の問題 (同じ箇所・同じ趣旨) は起票しない。close 済みで
                wontfix 判断されたものも再起票しない。
             4. label が無ければ `gh label create claude-sweep --description "Claude weekly sweep findings" --color 5319E7` で作成する。
             5. 新規の指摘のみ、1 指摘 = 1 issue で起票する。各 issue には以下を含める:
