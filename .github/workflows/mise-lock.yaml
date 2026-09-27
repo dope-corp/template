@@ -20,6 +20,8 @@ concurrency:
 
 jobs:
   mise-lock:
+    # fork からの PR は GITHUB_TOKEN で push できず、head ブランチの checkout もできないため対象外
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -61,9 +63,8 @@ jobs:
 
       # Renovate 等が mise.toml を変更した既存 PR には、
       # 同じブランチに直接 commit して mise.lock を追従させる。
-      # fork からの PR は GITHUB_TOKEN で push できないためスキップする。
       - name: Push mise.lock update to the pull request branch
-        if: steps.diff.outputs.changed == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.diff.outputs.changed == 'true' && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
@@ -87,7 +88,8 @@ jobs:
           git commit -m "chore: update mise.lock"
           git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" chore/mise-lock
 
-          if ! gh pr view chore/mise-lock --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          # gh pr view は merge 済み PR でも成功するため、open な PR の有無で判定する
+          if [ "$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head chore/mise-lock --json number --jq length)" = "0" ]; then
             gh pr create --repo "$GITHUB_REPOSITORY" --title "chore: update mise.lock" --base main --head chore/mise-lock \
               --body "mise lock の自動実行による mise.lock の更新です。差分を確認してください。"
           fi
