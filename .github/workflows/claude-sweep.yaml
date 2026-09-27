@@ -11,8 +11,9 @@ concurrency:
 
 # 前回レビュー済み地点を tag (claude-reviewed) で記録し、そこから HEAD までの
 # 差分だけをレビューして issue を起票する。修正 PR は作らない (issue が終点)。
-# tag の更新は Claude を通らない別ジョブに分離し、Claude 実行ジョブには
-# contents: write を与えない (prompt injection 時の影響範囲を issues に限定する)。
+# Claude を動かす review job には job の permissions に閉じた github.token だけを渡し、
+# tag の更新 (contents: write) は Claude を通らない別 job に分離する
+# (prompt injection 時の影響範囲を issue 起票に限定する)。
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -57,7 +58,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -68,10 +68,13 @@ jobs:
       - name: Run Claude Code sweep
         uses: anthropics/claude-code-action@cfc3eb22bfed5c26ef66e3223c982af27e4524de # v1.0.231
         env:
-          # Claude が Bash から gh CLI を使うための token (権限は本 job の permissions に従う)
+          # Claude が Bash から gh CLI を使うための token
           GH_TOKEN: ${{ github.token }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 未指定だと action は OIDC で Claude GitHub App の token を取得し、その権限は
+          # 本 job の permissions に縛られない。github.token を渡して job の権限に閉じる
+          github_token: ${{ github.token }}
           claude_args: |
             --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh search issues:*),Bash(gh issue create:*),Bash(gh label list:*),Bash(gh label create:*)"
           prompt: |
@@ -113,12 +116,13 @@ jobs:
     permissions:
       contents: write
     steps:
+      # tag の push に checkout が残す認証情報 (persist-credentials の既定値 true) を使う
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 1
 
       - name: Move claude-reviewed tag to HEAD
+        env:
+          HEAD_SHA: ${{ needs.plan.outputs.head }}
         run: |
-          git tag -f claude-reviewed "${{ needs.plan.outputs.head }}"
+          git tag -f claude-reviewed "$HEAD_SHA"
           git push --force origin refs/tags/claude-reviewed

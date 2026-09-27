@@ -1,22 +1,17 @@
 # template
 
-[![prek](https://github.com/dope-corp/template/actions/workflows/prek.yaml/badge.svg)](https://github.com/dope-corp/template/actions/workflows/prek.yaml)
-[![gitleaks](https://github.com/dope-corp/template/actions/workflows/gitleaks.yaml/badge.svg)](https://github.com/dope-corp/template/actions/workflows/gitleaks.yaml)
-[![mise-lock](https://github.com/dope-corp/template/actions/workflows/mise-lock.yaml/badge.svg)](https://github.com/dope-corp/template/actions/workflows/mise-lock.yaml)
+[![CI](https://github.com/dope-corp/template/actions/workflows/ci.yaml/badge.svg?event=pull_request)](https://github.com/dope-corp/template/actions/workflows/ci.yaml)
 
 dope-corp organization の新規リポジトリ作成時に使用する共通テンプレートです。
 
 新規リポジトリを作成する際、「Repository template」としてこのリポジトリを選択すると、以下のファイルが引き継がれます。
 
 - `.gitignore`
-- `.github/ISSUE_TEMPLATE/bug_report.md`
-- `.github/ISSUE_TEMPLATE/feature_request.md`
-- `.github/PULL_REQUEST_TEMPLATE.md`
 - `.github/CODEOWNERS`
-- `.github/workflows/prek.yaml`
-- `.github/workflows/gitleaks.yaml`
-- `.github/workflows/mise-lock.yaml`
-- `.github/workflows/claude.yaml`
+- `.github/PULL_REQUEST_TEMPLATE.md`
+- `.github/ISSUE_TEMPLATE/bug_report.yaml` / `feature_request.yaml` (issue forms。org の issue type Bug / Feature を付ける)
+- `.github/workflows/ci.yaml` (prek / gitleaks)
+- `.github/workflows/claude.yaml` / `claude-sweep.yaml` (Claude Code)
 - `mise.toml` / `mise.lock`
 - `fnox.toml`
 - `.pre-commit-config.yaml`
@@ -36,47 +31,93 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 
 ```sh
 mise trust    # 初回のみ: このディレクトリの mise.toml を信頼する
-mise install  # tools (prek 等) をインストールし、pre-commit hook をセットアップする
+mise install  # tools をインストールし、pre-commit hook をセットアップする
 ```
 
 `mise install` を実行すると `[hooks] postinstall` により `prek install` が自動実行され、
 `.git/hooks/pre-commit` がセットアップされる。
 
-pre-commit hook には `dprint-fmt` (`.pre-commit-config.yaml` 内) が含まれており、
-json/markdown/toml/yaml ファイルは [dprint](https://dprint.dev/) (`dprint.json` で設定) により
-自動フォーマットされる。dprint plugin の WASM URL は `url@sha256` の checksum 付きで pin されており、
-バージョンと checksum は Renovate (`renovate.json` の customManagers) が追従させる。
+## ツール
+
+ツールはすべて `mise.toml` の `[tools]` で exact version に pin し、`mise.lock` で
+プラットフォームごとの URL / checksum を固定する。CI (`ci.yaml`) もローカルも同じ `mise.lock` から
+ツールを解決するため、同じ検証をローカルで再現できる。
+
+```sh
+mise exec -- prek run --all-files          # pre-commit hooks を全ファイルに対して実行する
+mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシークレットスキャン
+```
+
+- [prek](https://github.com/j178/prek): pre-commit hook の実行基盤。hooks は `.pre-commit-config.yaml` で定義する。
+- [dprint](https://dprint.dev/): json / markdown / toml / yaml のフォーマッタ (`dprint-fmt` hook)。
+  plugin の WASM URL は `dprint.json` に `url@sha256` の checksum 付きで pin する。
+- [actionlint](https://github.com/rhysd/actionlint): workflow の静的検査 (`actionlint-system` hook)。
+- [gitleaks](https://github.com/gitleaks/gitleaks): シークレットスキャン (CI で実行)。
+- [fnox](https://fnox.jdx.dev/): 暗号化ファイル・パスワードマネージャ・クラウドから secret を読み込み、
+  環境変数としてコマンドに渡す secret manager。`fnox.toml` の `[daemon]` は、解決済みの secret を
+  メモリにキャッシュする daemon を有効化し、`idle_timeout` (12h) 無操作で終了させる設定。
+  provider 側で secret を更新した直後は `fnox daemon clear` でキャッシュを破棄する。
+
+### mise.toml / mise.lock を手で変更するとき
+
+`mise.toml` の `[tools]` を手で変更したら `mise lock` を実行して `mise.lock` を追従させ、
+両方を同じ commit に含める。CI の mise-action は `mise.lock` があると `mise install --locked` で
+インストールするため、`mise.lock` が古いままだと prek job で失敗する。
+
+## 依存関係の更新 (Renovate)
+
+`renovate.json` で以下を Renovate に任せる。
+
+- `mise.toml` のバージョン bump と、それに伴う `mise.lock` の更新 (同じ PR で行われる)。
+- `mise.lock` の週次再解決 (`lockFileMaintenance`)。checksum / URL を最新化し、
+  fuzzy 指定のツール (後述の `.node-version` 等) は同一 major 内の最新版に追従する。
+- `.pre-commit-config.yaml` の hook `rev` と、`language: node` の hook の `additional_dependencies`。
+- workflow の `uses:` の commit SHA (バージョンはコメントで併記し、Renovate が両方を更新する)。
+- `dprint.json` の plugin URL と checksum (`customManagers`)。
+
+major 以外の更新は 1 つの PR に集約する。このうち minor / patch は `minimumReleaseAge` (7 日) 経過後、
+CI green を条件に自動マージする。major は個別 PR で人手レビューする。
 
 ## CI
 
-- `.github/workflows/prek.yaml`: push / pull request 時に、`mise.lock` 通りのツールで
-  `.pre-commit-config.yaml` の全フックを `prek run --all-files` で実行する。
-- `.github/workflows/gitleaks.yaml`: push / pull request 時に、コミット履歴全体を対象に
-  [gitleaks](https://github.com/gitleaks/gitleaks) でシークレットスキャンを行う。
-  検知ルールの更新を取り込むため、毎週月曜に main の履歴全体を再スキャンする。
-- `.github/workflows/mise-lock.yaml`: `mise.toml` に pin されたバージョンのまま `mise lock` を実行し、
-  `mise.lock` の checksum/URL を最新化する。`mise.toml` のバージョン自体の更新は Renovate に任せる。
-  - `pull_request` (`mise.toml` を変更する PR、主に Renovate が対象):
-    同じ PR のブランチに直接 commit して追従させる。
-  - 毎週月曜 (`schedule`) / `workflow_dispatch`: 差分があれば `chore/mise-lock` ブランチで PR を作成する。
-  - `GITHUB_TOKEN` による push / PR 作成からは workflow run が発火しない (再帰実行防止の GitHub 仕様) ため、
-    更新したブランチへ prek / gitleaks を `workflow_dispatch` で明示的に起動して required check を付ける。
-    ci.yaml を追加したリポジトリでは dispatch 対象に ci.yaml も加えること。
+`.github/workflows/ci.yaml` は pull request 時に以下の job を並列実行する。job 名がそのまま
+required status check の名前になる。
 
-すべての workflow に `concurrency` を設定しており、同一 ref で新しい run が始まると
-実行中の古い run はキャンセルされる (変更を push しうる claude / mise-lock を除く)。
-ワークフローの外部依存 (`uses:` / `container:`) は commit SHA またはイメージ digest で固定し、
-バージョンをコメントで併記する (digest の更新も Renovate が行う)。
+- `prek`: `mise.lock` 通りのツールで `.pre-commit-config.yaml` の全 hook を `prek run --all-files` で実行する。
+- `gitleaks`: コミット履歴全体を対象にシークレットスキャンを行う。gitleaks のバージョン更新は
+  Renovate PR で届き、その PR の CI で新しい検知ルールによる全履歴スキャンが走る。
 
-build / test を持つリポジトリでは、prek が扱わない `npm audit` / test / build のみを行う
-ci.yaml (job 名は required check に合わせて `verify`) を追加する。参照実装:
+main への push では実行しない (main は PR 必須で、変更は PR の CI で検証してから merge される)。
+同一 ref で新しい run が始まると実行中の古い run はキャンセルされる (`concurrency`)。
+
+build / test を持つリポジトリでは、prek が扱わない `npm audit` / test / build を行う `verify` job を
+`ci.yaml` に追加し、ruleset の required checks にも `verify` を加える。参照実装:
 [dope-corp/web-app の ci.yaml](https://github.com/dope-corp/web-app/blob/main/.github/workflows/ci.yaml)。
 
-## Claude Code (claude.yaml)
+workflow の外部依存 (`uses:`) は commit SHA で固定し、バージョンをコメントで併記する。
 
-`.github/workflows/claude.yaml` は、issue / PR コメント等の `@claude` メンションで
-[claude-code-action](https://github.com/anthropics/claude-code-action) を起動する
-(author_association による一次フィルタ付き。書き込み権限の厳密な検証は action 内部で行われる)。
+## Claude Code
+
+### claude.yaml
+
+issue / PR コメント等の `@claude` メンションで
+[claude-code-action](https://github.com/anthropics/claude-code-action) を起動する。
+runner を起動する前の一次フィルタとして、`author_association` が OWNER / MEMBER のメンションだけを
+通す (書き込み権限の厳密な検証は action 内部で行われる)。
+
+### claude-sweep.yaml
+
+毎週月曜に、前回レビュー済み地点 (tag `claude-reviewed`) から HEAD までの差分を
+correctness / security / simplification の観点でレビューし、新規の指摘を `claude-sweep` label 付きの
+issue として起票する。修正 PR は作らない。
+
+- tag が無い初回は tag を張るだけで終了し (bootstrap)、差分が無ければ Claude を起動しない。
+- Claude を動かす job には `github.token` (`contents: read` / `issues: write`) だけを渡し、
+  tag の更新は Claude を通らない別 job で行う。
+- レビューが失敗した場合は tag を進めず、次回同じ範囲を再レビューする。
+- `workflow_dispatch` で手動実行できる。
+
+### secret
 
 実行には secret `CLAUDE_CODE_OAUTH_TOKEN` が必要だが、**dope-corp では organization レベルの
 secret (visibility: all) として設定済みのため、organization 内のリポジトリでは追加設定は不要**。
@@ -96,12 +137,13 @@ Node.js を使うリポジトリでは、既存の統一済みリポジトリ (d
   `.nvmrc` は作らない。Cloudflare のビルドや各種ツールもこのファイルを参照する。
 - `mise.toml` の `[settings]` に `idiomatic_version_file_enable_tools = ["node"]` を追加し、
   mise にも `.node-version` を読ませる。
-- `.github/workflows/mise-lock.yaml` の `pull_request` トリガーの `paths` に `.node-version` を
-  追加する (バージョン変更 PR に `mise.lock` を追従させるため)。
-- パッチバージョンの追従は mise-lock.yaml の週次実行が `mise.lock` の再解決で行い、
-  メジャー更新の提案は Renovate (nodenv manager、デフォルトで有効) が行う。
+- 同一 major 内の minor / patch は Renovate の `lockFileMaintenance` が `mise.lock` の再解決で追従し、
+  major 更新の提案は Renovate (nodenv manager、デフォルトで有効) が行う。
+- nodenv manager は `mise.lock` を更新しないため、`.node-version` の major 更新 PR では
+  そのブランチで `mise lock` を実行して `mise.lock` を commit する
+  (旧 major の lock のままだと CI の `mise install --locked` が失敗する)。
 - `.gitignore` (ホワイトリスト方式) に `!/.node-version` を追記する。
-- ci.yaml / eslint / typecheck / commitlint / dprint (language: node +
+- `verify` job と、eslint / typecheck / commitlint / dprint (language: node +
   additional_dependencies) の pre-commit hook 構成は
   [dope-corp/web-app](https://github.com/dope-corp/web-app) を参照実装とする。
 
@@ -115,6 +157,7 @@ Node.js を使うリポジトリでは、既存の統一済みリポジトリ (d
 - org ruleset「Protect main branch」: 全リポジトリの main が対象。PR 必須・squash merge 限定・
   ブランチ削除禁止・linear history。org レベルの ruleset なので**個別リポジトリから変更しないこと**。
 - org secret `CLAUDE_CODE_OAUTH_TOKEN` (visibility: all)。
+- org の issue types: Bug / Feature / Task。issue form の `type:` から参照する。
 
 ### リポジトリ生成後に初回に行う設定
 
@@ -140,7 +183,7 @@ gh api -X PATCH "repos/$REPO" --input - <<'JSON'
 JSON
 
 # main への merge に CI green を必須化する repo ruleset。
-# required checks は workflow 構成に合わせる: ci.yaml (job: verify) を追加したら
+# required checks は ci.yaml の job 名に合わせる: `verify` job を追加したら
 # {"context": "verify", "integration_id": 15368} も加える。
 gh api -X POST "repos/$REPO/rulesets" --input - <<'JSON'
 {
@@ -168,7 +211,8 @@ Settings → Advanced Security で確認する (org の新規リポジトリ既�
 
 ## 環境変数
 
-- ディレクトリ単位の環境変数は `mise.toml` の `[env]` に定義するか、`.env` ファイルを `_.file` で読み込む。
+- ディレクトリ単位の環境変数は `mise.toml` の `[env]` に定義するか、`.env` ファイルを
+  `_.file = ".env"` で読み込む。ローカルだけの値は `mise.local.toml` (git 管理外) に置いて上書きする。
 - シェル起動時に環境変数・PATH を自動反映させるため、シェルの rc ファイルに以下を追加する。
 
   ```sh
