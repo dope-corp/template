@@ -68,7 +68,7 @@ jobs:
           persist-credentials: false
 
       - name: Run Claude Code sweep
-        uses: anthropics/claude-code-action@1d6de8cb0c237e7c15e9e1bdf973826ebae490cc # v1.0.248
+        uses: anthropics/claude-code-action@34968b5981d5d170904281aa3df6f3c0d4a28855 # v1.0.249
         env:
           # Claude が Bash から gh CLI を使うための token
           GH_TOKEN: ${{ github.token }}
