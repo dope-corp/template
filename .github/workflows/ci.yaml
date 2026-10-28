@@ -28,7 +28,7 @@ jobs:
       # org の Actions 許可設定 (allowed_actions: selected) で jdx/mise-action@* を許可している必要がある。
       # mise.lock があるため `mise install --locked` になり、mise.toml との不整合はここで失敗する。
       - name: Install mise
-        uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
+        uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
 
       - name: Run prek
         run: mise exec -- prek run --all-files
@@ -45,7 +45,7 @@ jobs:
           persist-credentials: false
 
       - name: Install mise
-        uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
+        uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
 
       - name: Run gitleaks
         run: mise exec -- gitleaks git --redact -v .
