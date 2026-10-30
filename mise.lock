@@ -47,49 +47,49 @@ url_api = "https://api.github.com/repos/rhysd/actionlint/releases/assets/3849249
 provenance = "github-attestations"
 
 [[tools.dprint]]
-version = "0.64.1"
+version = "0.64.2"
 backend = "aqua:dprint/dprint"
 
 [tools.dprint."platforms.linux-arm64"]
-checksum = "sha256:5d83774c7546bd7a223f243a17e7851a75b8315899d2a42268e40ebbae66c69b"
-url = "https://github.com/dprint/dprint/releases/download/0.64.1/dprint-aarch64-unknown-linux-gnu.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/660288128"
+checksum = "sha256:5408f1b4f0355a7f5d48fc29e0fe84330539647892c90bd9f201af9f7dcc4242"
+url = "https://github.com/dprint/dprint/releases/download/0.64.2/dprint-aarch64-unknown-linux-gnu.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/667297708"
 provenance = "github-attestations"
 
 [tools.dprint."platforms.linux-arm64-musl"]
-checksum = "sha256:c8826c0b72fc0e1655404bf91fc29f821c01436e53152788e417df13a40d0671"
-url = "https://github.com/dprint/dprint/releases/download/0.64.1/dprint-aarch64-unknown-linux-musl.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/660288141"
+checksum = "sha256:30c812f7fa41b32fc40b3f1cdbab07ceb010186ea0aaa285f47bf4266fdb209f"
+url = "https://github.com/dprint/dprint/releases/download/0.64.2/dprint-aarch64-unknown-linux-musl.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/667297701"
 provenance = "github-attestations"
 
 [tools.dprint."platforms.linux-x64"]
-checksum = "sha256:9c2e00cd256dfa2c03a7f568ff08d8277abc5788c7f39fcd9ef325c4642cb4b4"
-url = "https://github.com/dprint/dprint/releases/download/0.64.1/dprint-x86_64-unknown-linux-gnu.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/660288131"
+checksum = "sha256:0e1f5fb1a47e5b8fc9eedfed0a5549f79a6352aeb6eeebd0205f0c6dae1531f3"
+url = "https://github.com/dprint/dprint/releases/download/0.64.2/dprint-x86_64-unknown-linux-gnu.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/667297702"
 provenance = "github-attestations"
 
 [tools.dprint."platforms.linux-x64-musl"]
-checksum = "sha256:aad2ee102014c563112dcdad65e131dbcfe123355ef948ae91d806e833cdbf40"
-url = "https://github.com/dprint/dprint/releases/download/0.64.1/dprint-x86_64-unknown-linux-musl.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/660288129"
+checksum = "sha256:d00d42d5aa390d82ad405aea60d186e47b37baabe2e304d0c142cb1d40ef731a"
+url = "https://github.com/dprint/dprint/releases/download/0.64.2/dprint-x86_64-unknown-linux-musl.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/667297700"
 provenance = "github-attestations"
 
 [tools.dprint."platforms.macos-arm64"]
-checksum = "sha256:d2a6e67e6aa308ed13d09627e8a8e8fe2cd3f62aeb406fe653d59bcec2c25c47"
-url = "https://github.com/dprint/dprint/releases/download/0.64.1/dprint-aarch64-apple-darwin.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/660288134"
+checksum = "sha256:ff6a7964762554433a17239225415efc216cf4e716313d2a84f34a75e3ed8920"
+url = "https://github.com/dprint/dprint/releases/download/0.64.2/dprint-aarch64-apple-darwin.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/667297696"
 provenance = "github-attestations"
 
 [tools.dprint."platforms.macos-x64"]
-checksum = "sha256:8a6f9d9e75e0379fb1b7fbc4a4528d33f72e050075bba7b20445be975a6d3273"
-url = "https://github.com/dprint/dprint/releases/download/0.64.1/dprint-x86_64-apple-darwin.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/660288130"
+checksum = "sha256:5aeb70679f1918f59cc10cf0a460b4cb1b2b4bcbf9fc2c2206d7b5d9b09baeb0"
+url = "https://github.com/dprint/dprint/releases/download/0.64.2/dprint-x86_64-apple-darwin.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/667297698"
 provenance = "github-attestations"
 
 [tools.dprint."platforms.windows-x64"]
-checksum = "sha256:52f59def557bdab65744d2b0cd23585843b8158d2427f7a671c35bdd080b38d0"
-url = "https://github.com/dprint/dprint/releases/download/0.64.1/dprint-x86_64-pc-windows-msvc.zip"
-url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/660288139"
+checksum = "sha256:1aea21bee5829abd6faf46f01f2b11a001526bf3e8bc2d9011a262b79bbbd018"
+url = "https://github.com/dprint/dprint/releases/download/0.64.2/dprint-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/667297695"
 provenance = "github-attestations"
 
 [[tools.fnox]]
