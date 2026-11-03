@@ -91,7 +91,7 @@ mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシー�
 - workflow の `uses:` の commit SHA (バージョンはコメントで併記し、Renovate が両方を更新する)。
 - `dprint.json` の plugin URL と checksum (`customManagers`)。
 
-major 以外の更新は 1 つの PR に集約する。このうち minor / patch は `minimumReleaseAge` (7 日) 経過後、
+更新 PR は毎週月曜 9 時前 (Asia/Tokyo) にまとめて作られる。major 以外の更新は 1 つの PR に集約する。このうち minor / patch は `minimumReleaseAge` (7 日) 経過後、
 CI green を条件に自動マージする。major は個別 PR で人手レビューする。
 
 merge は Renovate 自身が PR の全 status check の成功を確認してから行う (`platformAutomerge: false`)。
