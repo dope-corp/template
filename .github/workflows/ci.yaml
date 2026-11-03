@@ -1,8 +1,7 @@
 name: CI
 
 on:
-  # push トリガーは置かない: main は PR 必須 (org ruleset) なので PR で検証済みの内容しか入らない。
-  # デフォルト types の明示: closed 等 CI が不要な PR イベントでは走らせない
+  # main への変更は PR 経由で入れ、その PR で検証するため push トリガーは置かない
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -13,8 +12,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# job 名がそのまま required status check の名前になる (README「GitHub リポジトリ設定」参照)。
-# build / test を持つリポジトリは `verify` job をここに足す。
+# job 名がそのまま required status check の名前になるため、変えるときは ruleset の設定も合わせる
 jobs:
   prek:
     runs-on: ubuntu-latest
@@ -25,8 +23,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # org の Actions 許可設定 (allowed_actions: selected) で jdx/mise-action@* を許可している必要がある。
-      # mise.lock があるため `mise install --locked` になり、mise.toml との不整合はここで失敗する。
+      # org の Actions 許可設定で jdx/mise-action@* を許可している必要がある。
+      # mise.lock があると `mise install --locked` になり、mise.toml と食い違えばここで失敗する
       - name: Install mise
         uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
 
@@ -40,7 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # コミット履歴全体をスキャン対象にする
+          # gitleaks で全履歴をスキャンするため
           fetch-depth: 0
           persist-credentials: false
 
