@@ -95,8 +95,12 @@ major 以外の更新は 1 つの PR に集約する。このうち minor / patc
 CI green を条件に自動マージする。major は個別 PR で人手レビューする。
 
 merge は Renovate 自身が PR の全 status check の成功を確認してから行う (`platformAutomerge: false`)。
-GitHub の auto-merge 機能に任せると、required status check の無いリポジトリでは CI の完了を待たずに
-merge される (このリポジトリでも実際に起きた) ため使わない。
+GitHub の auto-merge 機能 (`platformAutomerge` の既定値 `true`) に任せると、required status check の無い
+リポジトリでは CI の完了を待たずに merge され、check が失敗した PR も入る (派生リポジトリで実際に起きた)。
+private リポジトリは無料プランでは required status check を設定できないため、派生したリポジトリも
+`platformAutomerge: false` を明示する。この場合、merge は Renovate の次の run まで数時間遅れる。
+public リポジトリや有料プランで required status check を設定できるリポジトリは、`platformAutomerge` の行を
+削除すると native auto-merge になり、CI 完了後に数分で merge される。
 
 ## CI
 
