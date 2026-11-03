@@ -9,13 +9,10 @@ concurrency:
   group: claude-sweep
   cancel-in-progress: false
 
-# 前回レビュー済み地点を tag (claude-reviewed) で記録し、そこから HEAD までの
-# 差分だけをレビューして issue を起票する。修正 PR は作らない (issue が終点)。
-# Claude を動かす review job には job の permissions に閉じた github.token だけを渡し、
-# tag の更新 (contents: write) は Claude を通らない別 job に分離する。
-# これで閉じるのは GitHub token 経由のリポジトリ書き込みまで。review job には issues: write の token と
-# Claude の OAuth credential が残るため、prompt injection 時の issue 操作・credential 露出は
-# --allowedTools による Bash の制限で緩和するにとどまる。
+# tag claude-reviewed から HEAD までの差分をレビューし、指摘を issue に起票する。
+# contents: write が要る tag の更新は Claude を通らない別 job に分け、review job からリポジトリへ書き込めないようにする。
+# review job には issues: write の token と Claude の OAuth credential が残るため、prompt injection による
+# issue 操作・credential の露出は --allowedTools で Bash を絞って緩和するだけにとどまる。
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -30,7 +27,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # tag の存在確認と差分計算に全履歴 + タグが必要
+          # tag の存在確認と差分計算に全履歴と tag が要る
           fetch-depth: 0
           persist-credentials: false
 
@@ -40,11 +37,11 @@ jobs:
           head="$(git rev-parse HEAD)"
           echo "head=${head}" >> "$GITHUB_OUTPUT"
           if ! git rev-parse -q --verify refs/tags/claude-reviewed > /dev/null; then
-            # 初回: 全体レビューは巨大になりすぎるため、tag を張るだけで終了する
+            # 初回は全体のレビューが大きすぎるため、tag を張るだけにする
             echo "mode=bootstrap" >> "$GITHUB_OUTPUT"
             echo "claude-reviewed tag が無いため bootstrap する (レビューは次回から)"
           elif git diff --quiet "claude-reviewed..${head}"; then
-            # 差分ゼロなら Claude を起動しない (コストガード)
+            # 差分が無ければ Claude を起動しない (費用を抑えるため)
             echo "mode=skip" >> "$GITHUB_OUTPUT"
             echo "前回レビュー以降の差分が無いためスキップする"
           else
@@ -70,12 +67,12 @@ jobs:
       - name: Run Claude Code sweep
         uses: anthropics/claude-code-action@8041f1d17e0e7d2f2cfe35002962e9f26237c0bb # v1.0.263
         env:
-          # Claude が Bash から gh CLI を使うための token
+          # Claude が Bash から gh CLI を使うため
           GH_TOKEN: ${{ github.token }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # 未指定だと action は OIDC で Claude GitHub App の token を取得し、その権限は
-          # 本 job の permissions に縛られない。github.token を渡して job の権限に閉じる
+          # 未指定だと action は OIDC で Claude GitHub App の token を取得し、job の permissions に
+          # 縛られない。github.token を渡して job の権限に閉じる
           github_token: ${{ github.token }}
           claude_args: |
             --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh search issues:*),Bash(gh issue create:*),Bash(gh label list:*),Bash(gh label create:*)"
@@ -104,8 +101,7 @@ jobs:
 
             最後に、起票した issue の一覧と、重複としてスキップした指摘の要約を出力してください。
 
-  # レビュー成功後 (または初回 bootstrap 時) に tag を HEAD へ進める。
-  # review job が失敗した場合は tag を進めず、次回同じ範囲を再レビューさせる。
+  # review が失敗したら tag を進めず、次回に同じ範囲を再レビューさせる
   update-tag:
     needs: [plan, review]
     if: >-
@@ -118,7 +114,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      # tag の push に checkout が残す認証情報 (persist-credentials の既定値 true) を使う
+      # tag の push に、checkout が残す認証情報 (persist-credentials の既定値 true) を使う
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

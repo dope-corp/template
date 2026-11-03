@@ -96,7 +96,7 @@ CI green を条件に自動マージする。major は個別 PR で人手レビ�
 
 merge は Renovate 自身が PR の全 status check の成功を確認してから行う (`platformAutomerge: false`)。
 GitHub の auto-merge 機能 (`platformAutomerge` の既定値 `true`) に任せると、required status check の無い
-リポジトリでは CI の完了を待たずに merge され、check が失敗した PR も入る (派生リポジトリで実際に起きた)。
+リポジトリでは CI の完了を待たずに merge され、check が失敗した PR も入る。
 private リポジトリは無料プランでは required status check を設定できないため、派生したリポジトリも
 `platformAutomerge: false` を明示する。この場合、merge は Renovate の次の run まで数時間遅れる。
 public リポジトリや有料プランで required status check を設定できるリポジトリは、`platformAutomerge` の行を
@@ -156,7 +156,7 @@ gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo dope-corp/<repo>
 
 ## node を利用する場合
 
-Node.js を使うリポジトリでは、既存の統一済みリポジトリ (dope-homepage / web-app 等) と同じ規約に揃える。
+Node.js を使うリポジトリでは次のように揃える。
 
 - バージョンの単一ソースとして `.node-version` を作成し、**メジャーのみ** (例: `26`) を書く。
   `.nvmrc` は作らない。Cloudflare のビルドや各種ツールもこのファイルを参照する。
