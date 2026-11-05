@@ -9,8 +9,8 @@ concurrency:
   group: claude-sweep
   cancel-in-progress: false
 
-# tag claude-reviewed から HEAD までの差分をレビューし、指摘を issue に起票する。
-# contents: write が要る tag の更新は Claude を通らない別 job に分け、review job からリポジトリへ書き込めないようにする。
+# 前回レビューした地点 (default branch で最後に成功した run の head commit) から HEAD までの差分をレビューし、指摘を issue に起票する。
+# 起点を tag で持つと、GITHUB_TOKEN は workflow ファイルの変更を含む commit へ ref を動かせず、push が拒否されることがある。
 # review job には issues: write の token と Claude の OAuth credential が残るため、prompt injection による
 # issue 操作・credential の露出は --allowedTools で Bash を絞って緩和するだけにとどまる。
 jobs:
@@ -19,6 +19,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      actions: read
     outputs:
       mode: ${{ steps.plan.outputs.mode }}
       base: ${{ steps.plan.outputs.base }}
@@ -27,26 +28,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # tag の存在確認と差分計算に全履歴と tag が要る
+          # 差分計算に全履歴が要る
           fetch-depth: 0
           persist-credentials: false
 
       - name: Determine review range
         id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           head="$(git rev-parse HEAD)"
           echo "head=${head}" >> "$GITHUB_OUTPUT"
-          if ! git rev-parse -q --verify refs/tags/claude-reviewed > /dev/null; then
-            # 初回は全体のレビューが大きすぎるため、tag を張るだけにする
-            echo "mode=bootstrap" >> "$GITHUB_OUTPUT"
-            echo "claude-reviewed tag が無いため bootstrap する (レビューは次回から)"
-          elif git diff --quiet "claude-reviewed..${head}"; then
+          # review が失敗した run は起点にならず、次回に同じ範囲を再レビューする
+          base="$(gh run list --workflow claude-sweep.yaml --branch "$DEFAULT_BRANCH" --status success --limit 1 --json headSha --jq '.[0].headSha // empty')"
+          if [ -z "$base" ]; then
+            # 初回は全体のレビューが大きすぎるため、成功で終えて起点を作るだけにする
+            echo "成功した run が無いため bootstrap する (レビューは次回から)"
+          elif git diff --quiet "${base}..${head}"; then
             # 差分が無ければ Claude を起動しない (費用を抑えるため)
-            echo "mode=skip" >> "$GITHUB_OUTPUT"
             echo "前回レビュー以降の差分が無いためスキップする"
           else
             echo "mode=review" >> "$GITHUB_OUTPUT"
-            echo "base=$(git rev-parse claude-reviewed)" >> "$GITHUB_OUTPUT"
+            echo "base=${base}" >> "$GITHUB_OUTPUT"
           fi
 
   review:
@@ -100,27 +104,3 @@ jobs:
             6. 修正 PR は作らない。コードも変更しない。issue 起票がこのタスクの終点。
 
             最後に、起票した issue の一覧と、重複としてスキップした指摘の要約を出力してください。
-
-  # review が失敗したら tag を進めず、次回に同じ範囲を再レビューさせる
-  update-tag:
-    needs: [plan, review]
-    if: >-
-      !cancelled() && (
-        needs.plan.outputs.mode == 'bootstrap' ||
-        (needs.plan.outputs.mode == 'review' && needs.review.result == 'success')
-      )
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    steps:
-      # tag の push に、checkout が残す認証情報 (persist-credentials の既定値 true) を使う
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Move claude-reviewed tag to HEAD
-        env:
-          HEAD_SHA: ${{ needs.plan.outputs.head }}
-        run: |
-          git tag -f claude-reviewed "$HEAD_SHA"
-          git push --force origin refs/tags/claude-reviewed
