@@ -131,14 +131,13 @@ runner を起動する前の一次フィルタとして、`author_association` �
 
 ### claude-sweep.yaml
 
-毎週月曜に、前回レビュー済み地点 (tag `claude-reviewed`) から HEAD までの差分を
+毎週月曜に、前回レビュー済み地点 (default branch で最後に成功した run の head commit) から HEAD までの差分を
 correctness / security / simplification の観点でレビューし、新規の指摘を `claude-sweep` label 付きの
 issue として起票する。修正 PR は作らない。
 
-- tag が無い初回は tag を張るだけで終了し (bootstrap)、差分が無ければ Claude を起動しない。
-- Claude を動かす job には `github.token` (`contents: read` / `issues: write`) だけを渡し、
-  tag の更新は Claude を通らない別 job で行う。
-- レビューが失敗した場合は tag を進めず、次回同じ範囲を再レビューする。
+- 成功した run が無い初回はレビューせずに成功で終え、次回の起点にする (bootstrap)。差分が無ければ Claude を起動しない。
+- Claude を動かす job には `github.token` (`contents: read` / `issues: write`) だけを渡す。
+- レビューが失敗すると run も失敗して起点が進まないので、次回同じ範囲を再レビューする。
 - `workflow_dispatch` で手動実行できる。
 
 ### secret
