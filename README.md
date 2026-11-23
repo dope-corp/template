@@ -14,7 +14,6 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 - `.github/workflows/ci.yaml` (prek / gitleaks)
 - `.github/workflows/claude.yaml` / `claude-sweep.yaml` (Claude Code)
 - `.github/jactionlint.yaml` (workflow の静的検査の設定)
-- `CLAUDE.md` (Claude Code に渡すリポジトリの規約・検証手順)
 - `mise.toml` / `mise.lock`
 - `fnox.toml`
 - `.pre-commit-config.yaml` / `commitlint.config.mjs`
@@ -24,9 +23,8 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 
 各リポジトリの事情に合わせて、生成後に内容を編集してください。次のものはリポジトリ固有の値なので必ず書き換える。
 
-- `README.md`: 本文と CI badge の URL (`dope-corp/template` の部分)。末尾の「タスク」節にある `mise-tasks` の HTML コメント (開始と終了の 2 行) は残す (`mise-task-docs` hook が README.md の変更のたびにその間へタスク一覧を書き込み、コメントが無いと失敗する)。
+- `README.md`: 本文と CI badge の URL (`dope-corp/template` の部分)。末尾の「タスク」節にある `mise-tasks` の HTML コメント (開始と終了の 2 行) は、`mise-task-docs` hook がタスク一覧を書き込む位置なので残す。
 - `.github/CODEOWNERS`: reviewer。
-- `CLAUDE.md`: プロジェクトの目的・ビルド / テスト手順・固有の規約。
 - self-hosted runner を使う場合は各 workflow の `runs-on` と、`.github/jactionlint.yaml` の `self-hosted-runner`。zizmor と jactionlint は self-hosted runner の利用自体を `self-hosted-runner` の finding として報告するので、信頼できる runner に限り、対象の job に理由のコメントを添えて `# zizmor: ignore[self-hosted-runner]` を付ける。
 
 引き継がれるのは**ファイルのみ**で、リポジトリ設定・ruleset は引き継がれないため、
@@ -68,7 +66,7 @@ mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシー�
 - [jactionlint](https://jactionlint.jdx.dev/): workflow の静的検査 (`jactionlint` hook)。actionlint の fork で、
   actionlint の検査に security / policy の rule を加えている。設定は `.github/jactionlint.yaml` で、
   `pedantic` profile と `--strict-exit` により warning を含む全 finding を失敗にする。ほかに次を検査する。
-  - `forbidden-uses`: org の Actions 許可設定にある action 以外の利用。action を足すときは `allow` にも足す。
+  - `forbidden-uses`: `allow` に列挙していない外部の action / reusable workflow の利用。それらを足すときは、org の Actions 許可設定の範囲で `allow` にも足す。
   - `config-variables` / `config-secrets`: 列挙していない `vars` / `secrets` の参照。repository / organization に足したら列挙にも足す。
   - `required-checks`: ruleset の required check を報告する job があるか。ruleset を変えたら揃える。
   - `timeout-too-long`: 30 分を超える `timeout-minutes`。
@@ -99,8 +97,7 @@ mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシー�
 ### mise.toml / mise.lock を手で変更するとき
 
 `mise.toml` の `[tools]` を手で変更したら `mise lock` を実行して `mise.lock` を追従させ、
-両方を同じ commit に含める。`mise.toml` の `[tool_config] locked = true` により、手元でも CI の mise-action
-(`mise install --locked`) と同じく、`mise.lock` に無い版は install も実行もエラーになる。
+両方を同じ commit に含める。
 
 ## 依存関係の更新 (Renovate)
 
@@ -189,8 +186,7 @@ Node.js を使うリポジトリでは次のように揃える。
 - 同一 major 内の minor / patch は Renovate の `lockFileMaintenance` が `mise.lock` の再解決で追従し、
   major 更新の提案は Renovate (nodenv manager、デフォルトで有効) が行う。
 - nodenv manager は `mise.lock` を更新しないため、`.node-version` の major 更新 PR では
-  そのブランチで `mise lock` を実行して `mise.lock` を commit する
-  (旧 major の lock のままだと CI の `mise install --locked` が失敗する)。
+  そのブランチで `mise lock` を実行して `mise.lock` を commit する。
 - `.gitignore` (ホワイトリスト方式) に `!/.node-version` を追記する。
 - `verify` job と、eslint / typecheck / commitlint / dprint (language: node +
   additional_dependencies) の pre-commit hook 構成は
@@ -301,7 +297,7 @@ validity checks は Update a repository API の入力に無いため、Settings 
 template のファイルは生成時にコピーされるだけで、その後 template 側で入った更新は自動では届かない。
 生成先で `mise run template-diff` を実行すると、共通ファイル (workflow・hook 設定・Renovate 設定・dprint 設定等)
 を template の main と比較して unified diff を表示する。差分にはそのリポジトリ固有の変更も混ざるので、
-取り込むものは手で選ぶ。`README.md` / `.github/CODEOWNERS` / `CLAUDE.md` / `mise.lock` は
+取り込むものは手で選ぶ。`README.md` / `.github/CODEOWNERS` / `mise.lock` は
 リポジトリ固有に書き換える前提のため比較対象外。
 
 ## 環境変数

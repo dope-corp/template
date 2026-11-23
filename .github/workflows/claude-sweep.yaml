@@ -5,7 +5,6 @@ on:
     - cron: "0 0 * * 1"
   workflow_dispatch:
 
-# 権限は job ごとに必要なものだけを付ける
 permissions: {}
 
 defaults:
@@ -23,7 +22,7 @@ concurrency:
 jobs:
   plan:
     name: plan
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read # checkout するため
@@ -65,7 +64,7 @@ jobs:
     name: review
     needs: plan
     if: ${{ needs.plan.outputs.mode == 'review' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read # checkout と差分の取得のため

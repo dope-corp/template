@@ -1,4 +1,3 @@
-# ホワイトリスト方式: すべて無視し、`!` で許可したものだけを追跡する
 *
 
 !/.github/
@@ -17,7 +16,6 @@
 !/.gitattributes
 !/.editorconfig
 !/README.md
-!/CLAUDE.md
 !/mise.toml
 !/mise.lock
 !/fnox.toml

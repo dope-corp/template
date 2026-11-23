@@ -2,33 +2,32 @@
 profile: pedantic
 
 rules:
-  # org の Actions 許可設定 (README「GitHub リポジトリ設定」) の範囲で、使う action だけを許可する。action を足すときはここにも足す
+  # ubuntu-latest は GitHub が新しい image に切り替えるが、job が使うのは mise で pin したツールと git・gh だけで
+  # 影響が小さいので、版を固定して更新の PR を毎回レビューする手間をかけない
+  mutable-runner-label: off
+  # 使う action だけを並べ、新しい action は明示して足す。org の Actions 許可設定 (README「GitHub リポジトリ設定」) より広げない
   forbidden-uses:
     allow:
-      - actions/*
+      - actions/checkout
       - jdx/mise-action
       - anthropics/claude-code-action
   timeout-too-long:
     max: 30
 
-# 未定義の vars / secrets を参照したら失敗にする。repository / organization に足したらここにも足す
 config-variables: []
 config-secrets:
   - CLAUDE_CODE_OAUTH_TOKEN
 
-# README「public リポジトリで行う設定」の ruleset の required checks。変えるときは両方を揃える
+# GitHub の ruleset の設定はコードから読めないので、README「public リポジトリで行う設定」の required checks と手で揃える
 required-checks:
   - name: prek
     branches: [main]
   - name: gitleaks
     branches: [main]
 
-# GitHub-hosted runner 以外のサービスのラベルを受け付けない
+# 外部の runner サービスは使わないので、そのラベルも受け付けない
 self-hosted-runner:
   providers: []
-
-# 生成されたと宣言する workflow も policy の検査から外さない
-generated-files: report
 
 shellcheck:
   enable: [all]

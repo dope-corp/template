@@ -1,9 +1,7 @@
 name: Claude Code
 on:
-  # 起動できるのは job の if で OWNER / MEMBER の @claude メンションに限る。PR で呼ぶと action は PR の head を
-  # checkout するが、PR の author に書き込み権限が無ければ、リポジトリのコードを実行する代表的なコマンド
-  # (package manager・test runner・interpreter・shell) を action が既定で拒否する。この拒否は sandbox ではないので、
-  # 外部の人の PR では、コードを確かめてから呼ぶ
+  # PR で呼ぶと PR の head を checkout する。author に書き込み権限が無い PR では action が一部のコマンドを拒否するが、
+  # sandbox ではないので、外部の人の PR ではコードを確かめてから呼ぶ
   issue_comment: # zizmor: ignore[dangerous-triggers]
     types: [created]
   pull_request_review_comment:
@@ -14,7 +12,6 @@ on:
   pull_request_review:
     types: [submitted]
 
-# 権限は job に必要なものだけを付ける
 permissions: {}
 
 concurrency:
@@ -29,8 +26,7 @@ jobs:
     # COLLABORATOR は read-only の outside collaborator を含みうるので許可しない。
     # 書き込み権限の厳密な検証は claude-code-action の内部で行う。
     # issue_comment は comment と issue の両方の author_association を持つため、comment を先に評価する。
-    # ${{ }} の外に文字があると文字列として評価されて常に真になるので、条件全体を 1 つの ${{ }} にする。
-    # 末尾の改行は GitHub が取り除くが、zizmor は | の末尾の改行を式の外の文字として常に真と判定するので、>- で落とす
+    # | だと zizmor が末尾の改行を ${{ }} の外の文字とみなし、常に真の条件と判定するので >- にする
     if: >-
       ${{
       contains(fromJSON('["OWNER", "MEMBER"]'),
@@ -43,7 +39,7 @@ jobs:
       )
       }}
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
 
     permissions:

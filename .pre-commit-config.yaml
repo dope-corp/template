@@ -16,7 +16,7 @@ repos:
       - id: check-json
       - id: check-toml
       - id: check-added-large-files
-      # macOS / Windows の checkout で衝突・失敗するファイル名を止める
+      # 派生リポジトリを macOS / Windows でも checkout できるようにする
       - id: check-case-conflict
       - id: check-illegal-windows-names
       - id: check-executables-have-shebangs
@@ -25,8 +25,7 @@ repos:
       - id: destroyed-symlinks
       - id: check-merge-conflict
       - id: mixed-line-ending
-      # private リポジトリは ruleset で main への push を止められないので、手元で main に commit した時点で止める。
-      # pre-commit stage だけなので、git merge が競合なく自動で作る merge commit は止めない
+      # Free plan の private リポジトリは ruleset で main への push を止められないので、手元で止める
       - id: no-commit-to-branch
         args: [--branch, main]
   # ツールは mise.toml で pin した版を使う。git hook はシェルの PATH を引き継がないことがあるので、mise exec / mise run で起動する
@@ -36,7 +35,7 @@ repos:
         name: Sync task docs into README.md
         language: system
         entry: mise run docs
-        # README.md を手で直して task の一覧が崩れたときも同期し直す。README.md の <!-- mise-tasks --> マーカーが要る
+        # README.md を手で直してタスク一覧が崩れたときも同期し直す
         files: ^(mise\.toml|README\.md)$
         pass_filenames: false
       - id: dprint-fmt
@@ -46,10 +45,8 @@ repos:
         # (mise.lock だけの commit 等) に exit 14 (No files found) で失敗しないようにする
         entry: mise exec -- dprint fmt --allow-no-files
         types_or: [json, yaml, markdown, toml]
-      # profile と rule の設定は .github/jactionlint.yaml にある。--strict-exit で warn / info の finding も失敗にする。
-      # --no-online: 環境変数 (JACTIONLINT_ONLINE) で online check が入り、commit が GitHub API に依存しないようにする。
-      # required-checks の検査は全 workflow を見るので、ファイルを渡さずリポジトリ全体を検査し、
-      # required check を報告する workflow の削除だけの commit でも実行する
+      # --no-online: 環境変数で online check が有効になっても、commit を GitHub API に依存させない。
+      # required-checks の検査は全 workflow を見るので、ファイルを渡さず、workflow を消すだけの commit でも走らせる
       - id: jactionlint
         name: Lint GitHub Actions workflows with jactionlint
         language: system
@@ -62,10 +59,8 @@ repos:
         language: system
         # prek はファイル名を直接渡すので、typos.toml の除外を渡したファイルにも適用する
         entry: mise exec -- typos --force-exclude
-      # auditor persona: false positive を含めて全 finding を出す最も厳しい設定。
-      # --strict-collection: 解析できない入力を黙って飛ばさず失敗にする。
-      # --offline: 環境の token を拾って commit が GitHub API に依存しないようにする。online audit は ci.yaml の専用 step が行う。
-      # 未追跡の草稿で commit を止めないよう、作業ツリー全体ではなく prek が選んだファイルだけを監査する
+      # --offline: 環境の token を拾っても、commit を GitHub API に依存させない (online audit は CI で行う)。
+      # ファイルを渡すのは、作業ツリー全体を走査すると未追跡の草稿で commit が止まるため
       - id: zizmor
         name: Audit GitHub Actions workflows and hook config with zizmor
         language: system

@@ -19,15 +19,15 @@ shellcheck = "0.11.0"
 
 [tasks.pre-commit]
 description = "Run the pre-commit hooks on all tracked files with prek (the hook step of the CI prek job)"
-# no-commit-to-branch は commit 先のブランチを見る hook で、検証には関係しない。main を checkout したままでも検証できるよう外す。
-# 環境変数の代入 (SKIP=) は Windows の cmd で動かないので、option で外す
+# no-commit-to-branch は検証ではないので、main を checkout したままでも検証できるよう外す。
+# SKIP= の環境変数ではなく option で外すのは、Windows の cmd で動かないため
 run = "prek run --all-files --skip no-commit-to-branch"
 
 [tasks.docs]
 description = "Sync the task list embedded in README.md with mise.toml"
 run = "mise generate task-docs --inject --output README.md"
 
-# README.md / CODEOWNERS / CLAUDE.md / mise.lock はリポジトリごとに書き換えるので比較しない
+# README.md / CODEOWNERS / mise.lock はリポジトリごとに書き換えるので比較しない
 [tasks.template-diff]
 description = "Diff shared files against dope-corp/template main"
 run = '''
@@ -70,7 +70,7 @@ postinstall = "prek install"
 [settings]
 lockfile = true
 
-# 手元でも mise.lock に無い版の解決をエラーにし、CI の `mise install --locked` と揃える。
-# [settings] の locked はユーザーのグローバル設定の tool にも効くので、このリポジトリの tool だけに効く tool_config に置く
+# 手元でも CI の --locked と同じく mise.lock に無い版を拒否する。[settings] の locked はユーザーのグローバルな
+# tool にも効くので、このリポジトリの tool だけに効く tool_config に置く
 [tool_config]
 locked = true
