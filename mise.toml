@@ -1,5 +1,4 @@
 # exact version で pin し、latest にしない (Renovate が mise.lock と合わせて更新する)。
-# 手で変えたら `mise lock` で mise.lock を追従させる。
 [tools]
 prek = "0.5.10"
 jactionlint = "2.6.0"

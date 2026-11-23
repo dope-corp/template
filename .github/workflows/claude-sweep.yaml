@@ -15,8 +15,8 @@ concurrency:
   group: claude-sweep
   cancel-in-progress: false
 
-# 前回レビューした地点 (default branch で最後に成功した run の head commit) から HEAD までの差分をレビューし、指摘を issue に起票する。
-# 起点を tag で持つと、GITHUB_TOKEN は workflow ファイルの変更を含む commit へ ref を動かせず、push が拒否されることがある。
+# レビューの起点を tag で持たないのは、GITHUB_TOKEN が workflow ファイルの変更を含む commit へ ref を動かせず、
+# push が拒否されることがあるため。
 # review job には issues: write の token と Claude の OAuth credential が残るため、prompt injection による
 # issue 操作・credential の露出は --allowedTools で Bash を絞って緩和するだけにとどまる。
 jobs:

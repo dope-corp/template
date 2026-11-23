@@ -11,6 +11,7 @@ rules:
       - actions/checkout
       - jdx/mise-action
       - anthropics/claude-code-action
+  # 止まった job が runner の時間を使い続けないよう、今の最長の job (Claude を動かす job の 30 分) を上限にする
   timeout-too-long:
     max: 30
 

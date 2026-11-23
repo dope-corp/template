@@ -22,9 +22,8 @@ concurrency:
 jobs:
   claude:
     name: claude
-    # runner を起動する前の一次フィルタで、OWNER / MEMBER の @claude メンションに限る。
+    # runner を起動する前の一次フィルタで、書き込み権限の厳密な検証は claude-code-action の内部で行う。
     # COLLABORATOR は read-only の outside collaborator を含みうるので許可しない。
-    # 書き込み権限の厳密な検証は claude-code-action の内部で行う。
     # issue_comment は comment と issue の両方の author_association を持つため、comment を先に評価する。
     # | だと zizmor が末尾の改行を ${{ }} の外の文字とみなし、常に真の条件と判定するので >- にする
     if: >-
@@ -53,7 +52,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # claude-code-action は自前の token で git 認証を構成する
+          # claude-code-action が自前の token で git 認証を構成するので、checkout の認証情報は残さない
           persist-credentials: false
 
       - name: Run Claude Code
