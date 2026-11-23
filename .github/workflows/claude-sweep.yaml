@@ -5,21 +5,28 @@ on:
     - cron: "0 0 * * 1"
   workflow_dispatch:
 
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: claude-sweep
   cancel-in-progress: false
 
-# 前回レビューした地点 (default branch で最後に成功した run の head commit) から HEAD までの差分をレビューし、指摘を issue に起票する。
-# 起点を tag で持つと、GITHUB_TOKEN は workflow ファイルの変更を含む commit へ ref を動かせず、push が拒否されることがある。
+# レビューの起点を tag で持たないのは、GITHUB_TOKEN が workflow ファイルの変更を含む commit へ ref を動かせず、
+# push が拒否されることがあるため。
 # review job には issues: write の token と Claude の OAuth credential が残るため、prompt injection による
 # issue 操作・credential の露出は --allowedTools で Bash を絞って緩和するだけにとどまる。
 jobs:
   plan:
+    name: plan
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: read
-      actions: read
+      contents: read # checkout するため
+      actions: read # 前回成功した run を gh run list で引くため
     outputs:
       mode: ${{ steps.plan.outputs.mode }}
       base: ${{ steps.plan.outputs.base }}
@@ -39,28 +46,29 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           head="$(git rev-parse HEAD)"
-          echo "head=${head}" >> "$GITHUB_OUTPUT"
+          echo "head=${head}" >> "${GITHUB_OUTPUT}"
           # review が失敗した run は起点にならず、次回に同じ範囲を再レビューする
-          base="$(gh run list --workflow claude-sweep.yaml --branch "$DEFAULT_BRANCH" --status success --limit 1 --json headSha --jq '.[0].headSha // empty')"
-          if [ -z "$base" ]; then
+          base="$(gh run list --workflow claude-sweep.yaml --branch "${DEFAULT_BRANCH}" --status success --limit 1 --json headSha --jq '.[0].headSha // empty')"
+          if [[ -z "${base}" ]]; then
             # 初回は全体のレビューが大きすぎるため、成功で終えて起点を作るだけにする
             echo "成功した run が無いため bootstrap する (レビューは次回から)"
           elif git diff --quiet "${base}..${head}"; then
             # 差分が無ければ Claude を起動しない (費用を抑えるため)
             echo "前回レビュー以降の差分が無いためスキップする"
           else
-            echo "mode=review" >> "$GITHUB_OUTPUT"
-            echo "base=${base}" >> "$GITHUB_OUTPUT"
+            echo "mode=review" >> "${GITHUB_OUTPUT}"
+            echo "base=${base}" >> "${GITHUB_OUTPUT}"
           fi
 
   review:
+    name: review
     needs: plan
-    if: needs.plan.outputs.mode == 'review'
+    if: ${{ needs.plan.outputs.mode == 'review' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
-      issues: write
+      contents: read # checkout と差分の取得のため
+      issues: write # 指摘を issue に起票するため
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -74,7 +82,9 @@ jobs:
           # Claude が Bash から gh CLI を使うため
           GH_TOKEN: ${{ github.token }}
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # environment に移さない。Free plan の private リポジトリでは environment を使えず、public リポジトリで
+          # required reviewers を付けると週次の sweep のたびに承認が要るため
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }} # zizmor: ignore[secrets-outside-env]
           # 未指定だと action は OIDC で Claude GitHub App の token を取得し、job の permissions に
           # 縛られない。github.token を渡して job の権限に閉じる
           github_token: ${{ github.token }}

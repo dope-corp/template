@@ -1,9 +1,9 @@
-# ホワイトリスト方式: すべて無視し、`!` で許可したものだけを追跡する
 *
 
 !/.github/
 !/.github/**/
 !/.github/CODEOWNERS
+!/.github/jactionlint.yaml
 !/.github/PULL_REQUEST_TEMPLATE.md
 !/.github/ISSUE_TEMPLATE/config.yml
 !/.github/ISSUE_TEMPLATE/bug_report.yaml
@@ -16,11 +16,11 @@
 !/.gitattributes
 !/.editorconfig
 !/README.md
-!/CLAUDE.md
 !/mise.toml
 !/mise.lock
 !/fnox.toml
 !/.pre-commit-config.yaml
 !/commitlint.config.mjs
 !/dprint.json
+!/typos.toml
 !/renovate.json

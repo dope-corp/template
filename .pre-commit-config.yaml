@@ -14,20 +14,29 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
+      - id: check-toml
       - id: check-added-large-files
+      # 派生リポジトリを macOS / Windows でも checkout できるようにする
+      - id: check-case-conflict
+      - id: check-illegal-windows-names
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: destroyed-symlinks
       - id: check-merge-conflict
       - id: mixed-line-ending
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.12
-    hooks:
-      - id: actionlint-system
+      # Free plan の private リポジトリは ruleset で main への push を止められないので、手元で止める
+      - id: no-commit-to-branch
+        args: [--branch, main]
+  # ツールは mise.toml で pin した版を使う。git hook はシェルの PATH を引き継がないことがあるので、mise exec / mise run で起動する
   - repo: local
     hooks:
       - id: mise-task-docs
         name: Sync task docs into README.md
         language: system
         entry: mise run docs
-        files: ^mise\.toml$
+        # README.md を手で直してタスク一覧が崩れたときも同期し直す
+        files: ^(mise\.toml|README\.md)$
         pass_filenames: false
       - id: dprint-fmt
         name: Format json/yaml/markdown/toml with dprint
@@ -36,6 +45,27 @@ repos:
         # (mise.lock だけの commit 等) に exit 14 (No files found) で失敗しないようにする
         entry: mise exec -- dprint fmt --allow-no-files
         types_or: [json, yaml, markdown, toml]
+      # --no-online: 環境変数で online check が有効になっても、commit を GitHub API に依存させない。
+      # required-checks の検査は全 workflow を見るので、ファイルを渡さず、workflow を消すだけの commit でも走らせる
+      - id: jactionlint
+        name: Lint GitHub Actions workflows with jactionlint
+        language: system
+        entry: mise exec -- jactionlint --strict-exit --no-online
+        files: (^\.github/|(^|/)action\.ya?ml$)
+        pass_filenames: false
+        include_deleted: true
+      - id: typos
+        name: Check spelling with typos
+        language: system
+        # prek はファイル名を直接渡すので、typos.toml の除外を渡したファイルにも適用する
+        entry: mise exec -- typos --force-exclude
+      # --offline: 環境の token を拾っても、commit を GitHub API に依存させない (online audit は CI で行う)。
+      # ファイルを渡すのは、作業ツリー全体を走査すると未追跡の草稿で commit が止まるため
+      - id: zizmor
+        name: Audit GitHub Actions workflows and hook config with zizmor
+        language: system
+        entry: mise exec -- zizmor --persona auditor --strict-collection --offline
+        files: (^\.github/workflows/[^/]+\.ya?ml$|(^|/)action\.ya?ml$|^\.github/dependabot\.ya?ml$|^\.pre-commit-(config|hooks)\.yaml$)
       # CI の gitleaks job は commit 後の検知なので、commit 前に止めるのはこの hook が担う
       # (GitHub Free plan の private リポジトリには push protection が無い)
       - id: gitleaks
