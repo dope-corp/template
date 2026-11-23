@@ -19,7 +19,7 @@ config-variables: []
 config-secrets:
   - CLAUDE_CODE_OAUTH_TOKEN
 
-# GitHub の ruleset の設定はコードから読めないので、README「public リポジトリで行う設定」の required checks と手で揃える
+# GitHub の ruleset の設定はコードから読めないので、README「GitHub リポジトリ設定」の ruleset の required checks と手で揃える
 required-checks:
   - name: prek
     branches: [main]

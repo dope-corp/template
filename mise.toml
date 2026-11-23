@@ -17,18 +17,18 @@ shellcheck = "0.11.0"
 # _.file = ".env"
 
 [tasks.pre-commit]
-description = "Run the pre-commit hooks on all tracked files with prek (the hook step of the CI prek job)"
+description = "全ファイルに pre-commit の hook を実行する (CI の prek job のうち online の検査を除く部分)"
 # no-commit-to-branch は検証ではないので、main を checkout したままでも検証できるよう外す。
 # SKIP= の環境変数ではなく option で外すのは、Windows の cmd で動かないため
 run = "prek run --all-files --skip no-commit-to-branch"
 
 [tasks.docs]
-description = "Sync the task list embedded in README.md with mise.toml"
+description = "README.md のタスク一覧を mise.toml から生成し直す"
 run = "mise generate task-docs --inject --output README.md"
 
 # README.md / CODEOWNERS / mise.lock はリポジトリごとに書き換えるので比較しない
 [tasks.template-diff]
-description = "Diff shared files against dope-corp/template main"
+description = "共通ファイルを dope-corp/template の main と比べて差分を表示する"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
