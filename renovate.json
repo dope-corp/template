@@ -5,6 +5,7 @@
     "helpers:pinGitHubActionDigests"
   ],
   "timezone": "Asia/Tokyo",
+  "semanticCommits": "enabled",
   "lockFileMaintenance": {
     "enabled": true
   },

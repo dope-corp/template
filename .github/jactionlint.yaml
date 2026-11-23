@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jdx/jactionlint/main/schema/jactionlint-config.json
+profile: pedantic
+
+rules:
+  # org の Actions 許可設定 (README「GitHub リポジトリ設定」) の範囲で、使う action だけを許可する。action を足すときはここにも足す
+  forbidden-uses:
+    allow:
+      - actions/*
+      - jdx/mise-action
+      - anthropics/claude-code-action
+  timeout-too-long:
+    max: 30
+
+# 未定義の vars / secrets を参照したら失敗にする。repository / organization に足したらここにも足す
+config-variables: []
+config-secrets:
+  - CLAUDE_CODE_OAUTH_TOKEN
+
+# README「public リポジトリで行う設定」の ruleset の required checks。変えるときは両方を揃える
+required-checks:
+  - name: prek
+    branches: [main]
+  - name: gitleaks
+    branches: [main]
+
+# GitHub-hosted runner 以外のサービスのラベルを受け付けない
+self-hosted-runner:
+  providers: []
+
+# 生成されたと宣言する workflow も policy の検査から外さない
+generated-files: report
+
+shellcheck:
+  enable: [all]

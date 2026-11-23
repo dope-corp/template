@@ -13,19 +13,21 @@ dope-corp organization の新規リポジトリ作成時に使用する共通テ
 - `.github/ISSUE_TEMPLATE/config.yml` (テンプレートを使わない blank issue を無効化)
 - `.github/workflows/ci.yaml` (prek / gitleaks)
 - `.github/workflows/claude.yaml` / `claude-sweep.yaml` (Claude Code)
+- `.github/jactionlint.yaml` (workflow の静的検査の設定)
 - `CLAUDE.md` (Claude Code に渡すリポジトリの規約・検証手順)
 - `mise.toml` / `mise.lock`
 - `fnox.toml`
 - `.pre-commit-config.yaml` / `commitlint.config.mjs`
 - `dprint.json`
+- `typos.toml`
 - `renovate.json`
 
 各リポジトリの事情に合わせて、生成後に内容を編集してください。次のものはリポジトリ固有の値なので必ず書き換える。
 
-- `README.md`: 本文と CI badge の URL (`dope-corp/template` の部分)。
+- `README.md`: 本文と CI badge の URL (`dope-corp/template` の部分)。末尾の「タスク」節にある `mise-tasks` の HTML コメント (開始と終了の 2 行) は残す (`mise-task-docs` hook が README.md の変更のたびにその間へタスク一覧を書き込み、コメントが無いと失敗する)。
 - `.github/CODEOWNERS`: reviewer。
 - `CLAUDE.md`: プロジェクトの目的・ビルド / テスト手順・固有の規約。
-- self-hosted runner を使う場合は各 workflow の `runs-on`。
+- self-hosted runner を使う場合は各 workflow の `runs-on` と、`.github/jactionlint.yaml` の `self-hosted-runner`。zizmor と jactionlint は self-hosted runner の利用自体を `self-hosted-runner` の finding として報告するので、信頼できる runner に限り、対象の job に理由のコメントを添えて `# zizmor: ignore[self-hosted-runner]` を付ける。
 
 引き継がれるのは**ファイルのみ**で、リポジトリ設定・ruleset は引き継がれないため、
 生成後に「[GitHub リポジトリ設定](#github-リポジトリ設定)」の初期設定を行ってください。
@@ -45,6 +47,8 @@ mise install  # tools をインストールし、pre-commit hook をセットア
 
 `mise install` を実行すると `[hooks] postinstall` により `prek install` が自動実行され、
 `.git/hooks/pre-commit` と `.git/hooks/commit-msg` がセットアップされる。
+private リポジトリでは ruleset で main への push を止められないため、main を checkout しているときの
+`git commit` は `no-commit-to-branch` hook が止める (`git merge` が競合なく自動で作る merge commit は止めない)。
 `.pre-commit-config.yaml` の hook 構成が変わったあとの既存 clone では `mise exec -- prek install` を再実行する。
 
 ## ツール
@@ -54,16 +58,34 @@ mise install  # tools をインストールし、pre-commit hook をセットア
 ツールを解決するため、同じ検証をローカルで再現できる。
 
 ```sh
-mise exec -- prek run --all-files          # pre-commit hooks を全ファイルに対して実行する
+mise run pre-commit                        # pre-commit hooks を全ファイルに対して実行する (CI の prek job のうち online の検査を除く部分)
 mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシークレットスキャン
 ```
 
 - [prek](https://github.com/j178/prek): pre-commit hook の実行基盤。hooks は `.pre-commit-config.yaml` で定義する。
 - [dprint](https://dprint.dev/): json / markdown / toml / yaml のフォーマッタ (`dprint-fmt` hook)。
   plugin の WASM URL は `dprint.json` に `url@sha256` の checksum 付きで pin する。
-- [actionlint](https://github.com/rhysd/actionlint): workflow の静的検査 (`actionlint-system` hook)。
-  `run:` スクリプトの検査に [shellcheck](https://github.com/koalaman/shellcheck) を使う。actionlint は PATH に
-  shellcheck が無いとその検査を黙って省くため、ローカルと CI で結果が変わらないように mise で pin している。
+- [jactionlint](https://jactionlint.jdx.dev/): workflow の静的検査 (`jactionlint` hook)。actionlint の fork で、
+  actionlint の検査に security / policy の rule を加えている。設定は `.github/jactionlint.yaml` で、
+  `pedantic` profile と `--strict-exit` により warning を含む全 finding を失敗にする。ほかに次を検査する。
+  - `forbidden-uses`: org の Actions 許可設定にある action 以外の利用。action を足すときは `allow` にも足す。
+  - `config-variables` / `config-secrets`: 列挙していない `vars` / `secrets` の参照。repository / organization に足したら列挙にも足す。
+  - `required-checks`: ruleset の required check を報告する job があるか。ruleset を変えたら揃える。
+  - `timeout-too-long`: 30 分を超える `timeout-minutes`。
+  - `run:` スクリプトの [shellcheck](https://github.com/koalaman/shellcheck) (optional check をすべて有効にする)。
+    ローカルと CI で結果が変わらないように shellcheck も mise で pin している。
+
+  impostor commit・advisory 等の online check は、CI の `prek` job の専用 step が `github.token` で実行する。
+  手元では `mise exec -- jactionlint --strict-exit --online=strict` で実行する (token は `gh auth token` から取る)。
+  除外は該当行の上に `# jactionlint ignore=<rule>` を理由のコメントを添えて書く。zizmor と同じ finding は、jactionlint も読む zizmor のコメントだけで除外する。
+- [zizmor](https://docs.zizmor.sh/): workflow と `.pre-commit-config.yaml` のセキュリティ監査 (`zizmor` hook)。
+  `--persona auditor` で informational を含む全 finding を出し、`--strict-collection` で解析できない入力を失敗にする。
+  impostor-commit・known-vulnerable-actions 等の online audit は GitHub API の token が要るので、hook では走らず、
+  CI の `prek` job の専用 step が `github.token` を渡して実行する。手元で同じ検査をするときは
+  `ZIZMOR_GITHUB_TOKEN="$(gh auth token)" mise exec -- zizmor --persona auditor --strict-collection .` を実行する。
+  除外は該当行の `# zizmor: ignore[<audit 名>]` に理由のコメントを添えて書く。
+- [typos](https://github.com/crate-ci/typos): 英単語の typo 検査 (`typos` hook)。綴りは `typos.toml` で米国英語 (`en-us`) に揃える。
+  誤検知は `typos.toml` の `extend-identifiers` / `extend-words` で除外する。
 - [gitleaks](https://github.com/gitleaks/gitleaks): シークレットスキャン。pre-commit hook (`gitleaks` hook) が
   staged 差分を、CI の `gitleaks` job がコミット履歴全体を対象にする。
 - [commitlint](https://commitlint.js.org/): commit message を
@@ -77,8 +99,8 @@ mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシー�
 ### mise.toml / mise.lock を手で変更するとき
 
 `mise.toml` の `[tools]` を手で変更したら `mise lock` を実行して `mise.lock` を追従させ、
-両方を同じ commit に含める。CI の mise-action は `mise.lock` があると `mise install --locked` で
-インストールするため、`mise.lock` が古いままだと prek job で失敗する。
+両方を同じ commit に含める。`mise.toml` の `[tool_config] locked = true` により、手元でも CI の mise-action
+(`mise install --locked`) と同じく、`mise.lock` に無い版は install も実行もエラーになる。
 
 ## 依存関係の更新 (Renovate)
 
@@ -91,6 +113,8 @@ mise exec -- gitleaks git --redact -v .    # コミット履歴全体のシー�
 - workflow の `uses:` の commit SHA (バージョンはコメントで併記し、Renovate が両方を更新する)。
 - `dprint.json` の plugin URL と checksum (`customManagers`)。
 
+更新 PR のタイトルと commit message は Conventional Commits にする (`semanticCommits: "enabled"`)。
+既定の自動判定はリポジトリの直近の commit から決めるため、履歴の少ない生成直後のリポジトリでも確実に揃えるよう明示している。
 更新 PR は毎週月曜 9 時前 (Asia/Tokyo) にまとめて作られる。major 以外の更新は 1 つの PR に集約する。このうち minor / patch は `minimumReleaseAge` (7 日) 経過後、
 CI green を条件に自動マージする。major は個別 PR で人手レビューする。
 
@@ -104,10 +128,11 @@ public リポジトリや有料プランで required status check を設定で�
 
 ## CI
 
-`.github/workflows/ci.yaml` は pull request 時に以下の job を並列実行する。job 名がそのまま
+`.github/workflows/ci.yaml` は pull request 時に以下の job を並列実行する。job の `name` がそのまま
 required status check の名前になる。
 
-- `prek`: `mise.lock` 通りのツールで `.pre-commit-config.yaml` の全 hook を `prek run --all-files` で実行する。
+- `prek`: `mise.lock` 通りのツールで `.pre-commit-config.yaml` の全 hook を `mise run pre-commit` で実行し、
+  続けて zizmor と jactionlint を online の検査込みで実行する。
 - `gitleaks`: コミット履歴全体を対象にシークレットスキャンを行う。gitleaks のバージョン更新は
   Renovate PR で届き、その PR の CI で新しい検知ルールによる全履歴スキャンが走る。
 
@@ -212,7 +237,7 @@ JSON
 
 main を PR 必須・CI green 必須・squash merge 限定・force push / 削除禁止・linear history にする ruleset を作る。
 required checks は `ci.yaml` の job 名に合わせる: `verify` job を追加したら
-`{"context": "verify", "integration_id": 15368}` も加える。
+`{"context": "verify", "integration_id": 15368}` も加え、`.github/jactionlint.yaml` の `required-checks` にも足す。
 
 ```sh
 gh api -X POST "repos/$REPO/rulesets" --input - <<'JSON'
@@ -302,6 +327,12 @@ template のファイルは生成時にコピーされるだけで、その後 t
 - **Usage:** `docs`
 
 Sync the task list embedded in README.md with mise.toml
+
+## `pre-commit`
+
+- **Usage:** `pre-commit`
+
+Run the pre-commit hooks on all tracked files with prek (the hook step of the CI prek job)
 
 ## `template-diff`
 

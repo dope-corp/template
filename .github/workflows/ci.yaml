@@ -8,14 +8,19 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# job 名がそのまま required status check の名前になるため、変えるときは ruleset の設定も合わせる
+# job の name がそのまま required status check の名前になるため、変えるときは ruleset の設定も合わせる
 jobs:
   prek:
-    runs-on: ubuntu-latest
+    name: prek
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -29,10 +34,26 @@ jobs:
         uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
 
       - name: Run prek
-        run: mise exec -- prek run --all-files
+        run: mise run pre-commit
+
+      # prek の zizmor hook は --offline で動くので、online audit
+      # (impostor-commit・known-vulnerable-actions 等) を含めてここで実行する。
+      # token は他の hook に渡さないよう、この step だけに渡す
+      - name: Run zizmor with online audits
+        run: mise exec -- zizmor --persona auditor --strict-collection .
+        env:
+          ZIZMOR_GITHUB_TOKEN: ${{ github.token }}
+
+      # jactionlint の online check (impostor commit・archived repository・advisory 等) も hook では走らないので、ここで実行する。
+      # strict: 照会できなかった action があれば黙って飛ばさず失敗にする
+      - name: Run jactionlint with online checks
+        run: mise exec -- jactionlint --strict-exit --online=strict
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   gitleaks:
-    runs-on: ubuntu-latest
+    name: gitleaks
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout

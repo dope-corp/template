@@ -1,6 +1,10 @@
 name: Claude Code
 on:
-  issue_comment:
+  # 起動できるのは job の if で OWNER / MEMBER の @claude メンションに限る。PR で呼ぶと action は PR の head を
+  # checkout するが、PR の author に書き込み権限が無ければ、リポジトリのコードを実行する代表的なコマンド
+  # (package manager・test runner・interpreter・shell) を action が既定で拒否する。この拒否は sandbox ではないので、
+  # 外部の人の PR では、コードを確かめてから呼ぶ
+  issue_comment: # zizmor: ignore[dangerous-triggers]
     types: [created]
   pull_request_review_comment:
     types: [created]
@@ -10,6 +14,9 @@ on:
   pull_request_review:
     types: [submitted]
 
+# 権限は job に必要なものだけを付ける
+permissions: {}
+
 concurrency:
   # issue / PR 単位で直列化する。実行中の job は push しうるのでキャンセルしない
   group: claude-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
@@ -17,11 +24,15 @@ concurrency:
 
 jobs:
   claude:
+    name: claude
     # runner を起動する前の一次フィルタで、OWNER / MEMBER の @claude メンションに限る。
     # COLLABORATOR は read-only の outside collaborator を含みうるので許可しない。
     # 書き込み権限の厳密な検証は claude-code-action の内部で行う。
     # issue_comment は comment と issue の両方の author_association を持つため、comment を先に評価する。
-    if: |
+    # ${{ }} の外に文字があると文字列として評価されて常に真になるので、条件全体を 1 つの ${{ }} にする。
+    # 末尾の改行は GitHub が取り除くが、zizmor は | の末尾の改行を式の外の文字として常に真と判定するので、>- で落とす
+    if: >-
+      ${{
       contains(fromJSON('["OWNER", "MEMBER"]'),
         github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) &&
       (
@@ -30,18 +41,17 @@ jobs:
         (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
         (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
       )
+      }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-      # claude-code-action が OIDC で Claude GitHub App の token を取得するため
-      id-token: write
-      # Claude が PR の CI 結果を読むため
-      actions: read
+      contents: write # Claude がブランチに commit を push するため
+      pull-requests: write # Claude が PR にコメントするため
+      issues: write # Claude が issue にコメントするため
+      id-token: write # claude-code-action が OIDC で Claude GitHub App の token を取得するため
+      actions: read # Claude が PR の CI 結果を読むため
 
     steps:
       - name: Checkout repository
@@ -53,4 +63,6 @@ jobs:
       - name: Run Claude Code
         uses: anthropics/claude-code-action@f3b070c88125d33dbae5653df5f143101d4ea9dc # v1.0.276
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # environment に移さない。Free plan の private リポジトリでは environment を使えず、public リポジトリで
+          # required reviewers を付けると @claude の起動のたびに承認が要るため
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }} # zizmor: ignore[secrets-outside-env]

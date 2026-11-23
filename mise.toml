@@ -2,11 +2,13 @@
 # 手で変えたら `mise lock` で mise.lock を追従させる。
 [tools]
 prek = "0.5.10"
-actionlint = "1.7.12"
+jactionlint = "2.6.0"
 dprint = "0.64.3"
 fnox = "v1.48.0"
 gitleaks = "8.30.1"
-# actionlint は PATH に shellcheck があるときだけ run: を検査するため、ローカルと CI で揃えて pin する
+typos = "1.52.2"
+zizmor = "1.32.0"
+# jactionlint は PATH の shellcheck で run: を検査するため、ローカルと CI で揃えて pin する
 shellcheck = "0.11.0"
 
 [env]
@@ -14,6 +16,12 @@ shellcheck = "0.11.0"
 # 例:
 # MY_VAR = "value"
 # _.file = ".env"
+
+[tasks.pre-commit]
+description = "Run the pre-commit hooks on all tracked files with prek (the hook step of the CI prek job)"
+# no-commit-to-branch は commit 先のブランチを見る hook で、検証には関係しない。main を checkout したままでも検証できるよう外す。
+# 環境変数の代入 (SKIP=) は Windows の cmd で動かないので、option で外す
+run = "prek run --all-files --skip no-commit-to-branch"
 
 [tasks.docs]
 description = "Sync the task list embedded in README.md with mise.toml"
@@ -28,8 +36,8 @@ set -euo pipefail
 repo="dope-corp/template"
 files=(
   .editorconfig .gitattributes .gitignore .pre-commit-config.yaml commitlint.config.mjs
-  dprint.json fnox.toml mise.toml renovate.json
-  .github/PULL_REQUEST_TEMPLATE.md
+  dprint.json fnox.toml mise.toml renovate.json typos.toml
+  .github/PULL_REQUEST_TEMPLATE.md .github/jactionlint.yaml
   .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug_report.yaml .github/ISSUE_TEMPLATE/feature_request.yaml
   .github/workflows/ci.yaml .github/workflows/claude.yaml .github/workflows/claude-sweep.yaml
 )
@@ -61,3 +69,8 @@ postinstall = "prek install"
 
 [settings]
 lockfile = true
+
+# 手元でも mise.lock に無い版の解決をエラーにし、CI の `mise install --locked` と揃える。
+# [settings] の locked はユーザーのグローバル設定の tool にも効くので、このリポジトリの tool だけに効く tool_config に置く
+[tool_config]
+locked = true
