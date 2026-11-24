@@ -11,6 +11,8 @@ rules:
       - actions/checkout
       - jdx/mise-action
       - anthropics/claude-code-action
+      # dope-corp/.github の reusable workflow。リポジトリ名だけのパターンでは reusable workflow に一致しない
+      - dope-corp/.github/.github/workflows/*
   # 止まった job が runner の時間を使い続けないよう、今の最長の job (Claude を動かす job の 30 分) を上限にする
   timeout-too-long:
     max: 30
@@ -19,11 +21,11 @@ config-variables: []
 config-secrets:
   - CLAUDE_CODE_OAUTH_TOKEN
 
-# GitHub の ruleset の設定はコードから読めないので、README「GitHub リポジトリ設定」の ruleset の required checks と手で揃える
+# GitHub の ruleset の設定はコードから読めないので、README「GitHub リポジトリ設定」の ruleset の required checks と手で揃える。
+# 別リポジトリの reusable workflow が報告する check (gitleaks / gitleaks・pr-title / pr-title) は、jactionlint が中を
+# 確かめられず unreachable-required-check になるので書かない
 required-checks:
   - name: prek
-    branches: [main]
-  - name: gitleaks
     branches: [main]
 
 # 外部の runner サービスは使わないので、そのラベルも受け付けない
