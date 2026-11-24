@@ -8,16 +8,16 @@ CI の一部・Claude の週次レビュー・Renovate の設定は、[dope-corp
 
 ## 含まれるもの
 
-| 用途            | ファイル                                                                           | 内容                                                                                                                  |
-| --------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| ツールとタスク  | `mise.toml` / `mise.lock`                                                          | ツールの版の固定と `mise run` のタスク                                                                                |
-| commit 時の検査 | `.pre-commit-config.yaml` / `commitlint.config.mjs` / `dprint.json` / `typos.toml` | 整形・lint・secret スキャン・commit message の検査                                                                    |
-| CI              | `.github/workflows/ci.yaml` / `pr-title.yaml` / `.github/jactionlint.yaml`         | PR ごとに commit 時の検査 (commit message を除く)・全履歴の secret スキャン・PR タイトルの検査を実行する              |
-| Claude Code     | `.github/workflows/claude.yaml` / `claude-sweep.yaml`                              | `@claude` のメンションへの応答と、週次の差分レビュー                                                                  |
-| 依存の更新      | `.github/renovate.json`                                                            | dope-corp/.github の Renovate preset を参照する。Renovate が週次で更新の PR を作り、minor / patch は自動で merge する |
-| secret          | `fnox.toml`                                                                        | secret を環境変数としてコマンドに渡す [fnox](https://fnox.jdx.dev/) の設定                                            |
-| GitHub          | `.github/CODEOWNERS`                                                               | reviewer                                                                                                              |
-| エディタと git  | `.editorconfig` / `.gitattributes` / `.gitignore`                                  | UTF-8・LF・2 スペースに揃える。`.gitignore` はホワイトリスト方式                                                      |
+| 用途            | ファイル                                                                                           | 内容                                                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| ツールとタスク  | `mise.toml` / `mise.lock`                                                                          | ツールの版の固定と `mise run` のタスク                                                                                |
+| commit 時の検査 | `.pre-commit-config.yaml` / `.config/commitlint.config.mjs` / `.config/dprint.json` / `typos.toml` | 整形・lint・secret スキャン・commit message の検査                                                                    |
+| CI              | `.github/workflows/ci.yaml` / `pr-title.yaml` / `.github/jactionlint.yaml`                         | PR ごとに commit 時の検査 (commit message を除く)・全履歴の secret スキャン・PR タイトルの検査を実行する              |
+| Claude Code     | `.github/workflows/claude.yaml` / `claude-sweep.yaml`                                              | `@claude` のメンションへの応答と、週次の差分レビュー                                                                  |
+| 依存の更新      | `.github/renovate.json`                                                                            | dope-corp/.github の Renovate preset を参照する。Renovate が週次で更新の PR を作り、minor / patch は自動で merge する |
+| secret          | `fnox.toml`                                                                                        | secret を環境変数としてコマンドに渡す [fnox](https://fnox.jdx.dev/) の設定                                            |
+| GitHub          | `.github/CODEOWNERS`                                                                               | reviewer                                                                                                              |
+| エディタと git  | `.editorconfig` / `.gitattributes` / `.gitignore`                                                  | UTF-8・LF・2 スペースに揃える。`.gitignore` はホワイトリスト方式                                                      |
 
 ```mermaid
 flowchart LR
@@ -76,7 +76,7 @@ main を checkout したままの `git commit` は hook が止めるので、作
 | CLI (prek・dprint・gitleaks 等) | `mise.toml` の `[tools]` に exact version、`mise.lock` にプラットフォームごとの URL と checksum |
 | commitlint とその設定パッケージ | `.pre-commit-config.yaml` の `additional_dependencies`                                          |
 | hook の取得元                   | `.pre-commit-config.yaml` の `rev`                                                              |
-| dprint の plugin                | `dprint.json` の `url@sha256`                                                                   |
+| dprint の plugin                | `.config/dprint.json` の `url@sha256`                                                           |
 | workflow の `uses:`             | commit SHA (版はコメントで併記)                                                                 |
 
 CLI の更新 PR は `mise.lock` も、dprint の plugin の更新 PR は checksum も一緒に更新します。`mise.toml` の `[tools]` を手で変えたら、`mise lock` で `mise.lock` を追従させて同じ commit に含めます。`mise.lock` が古いと、手元と CI の `mise install` が失敗します。
@@ -93,12 +93,12 @@ hook は `.pre-commit-config.yaml` で定義します。git hook の種類 (`def
 | [pre-commit-hooks](https://github.com/pre-commit/pre-commit-hooks) | 全ファイル                          | 行末の空白・末尾の改行・改行コードを直し、YAML / JSON / TOML の構文、大きなファイル、conflict の印、macOS / Windows で checkout できない名前、symlink、shebang を検査する        | -                                                                                                                                                        |
 | no-commit-to-branch                                                | -                                   | main を checkout しているときの commit を止める (*1)                                                                                                                             | -                                                                                                                                                        |
 | mise-task-docs                                                     | `mise.toml`・`README.md`            | README のタスク一覧を生成し直す (`mise run docs`)                                                                                                                                | -                                                                                                                                                        |
-| [dprint](https://dprint.dev/)                                      | json / yaml / markdown / toml       | 整形する                                                                                                                                                                         | `dprint.json`                                                                                                                                            |
+| [dprint](https://dprint.dev/)                                      | json / yaml / markdown / toml       | 整形する                                                                                                                                                                         | `.config/dprint.json`                                                                                                                                    |
 | [jactionlint](https://jactionlint.jdx.dev/)                        | `.github/`                          | workflow の静的検査。warning も失敗にする (`timeout-minutes` は 30 分まで) と、`run:` の [shellcheck](https://github.com/koalaman/shellcheck) (optional check もすべて有効) (*2) | `.github/jactionlint.yaml`。除外は該当行の上に `# jactionlint ignore=<rule>`                                                                             |
 | [zizmor](https://docs.zizmor.sh/)                                  | workflow・`.pre-commit-config.yaml` | セキュリティ監査。`--persona auditor` で全 finding を、`--strict-collection` で解析できない入力を失敗にする (*2)                                                                 | 該当行の `# zizmor: ignore[<audit 名>]`。jactionlint と同じ finding もこちらだけで除外する                                                               |
 | [typos](https://github.com/crate-ci/typos)                         | 全ファイル                          | 英単語の typo。綴りは米国英語に揃える                                                                                                                                            | `typos.toml` の `extend-identifiers` (識別子) / `extend-words` (単語)                                                                                    |
 | [gitleaks](https://github.com/gitleaks/gitleaks)                   | staged の差分                       | secret を検出する                                                                                                                                                                | 該当行の `gitleaks:allow` コメント。commit 済みの誤検知は `.gitleaksignore` に finding の Fingerprint を書き、`.gitignore` に `!/.gitleaksignore` を足す |
-| [commitlint](https://commitlint.js.org/) (`commit-msg`)            | commit message                      | [Conventional Commits](https://www.conventionalcommits.org/) か検査する。node は prek が用意するので、リポジトリに node は要らない                                               | `commitlint.config.mjs`                                                                                                                                  |
+| [commitlint](https://commitlint.js.org/) (`commit-msg`)            | commit message                      | [Conventional Commits](https://www.conventionalcommits.org/) か検査する。node は prek が用意するので、リポジトリに node は要らない                                               | `.config/commitlint.config.mjs`                                                                                                                          |
 
 除外は、誤検知と直せない箇所だけに理由のコメントを添えて書きます。
 

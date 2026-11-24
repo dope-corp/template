@@ -12,6 +12,10 @@
 !/.github/workflows/claude-sweep.yaml
 !/.github/workflows/pr-title.yaml
 
+!/.config/
+!/.config/commitlint.config.mjs
+!/.config/dprint.json
+
 !/.gitignore
 !/.gitattributes
 !/.editorconfig
@@ -20,8 +24,6 @@
 !/mise.lock
 !/fnox.toml
 !/.pre-commit-config.yaml
-!/commitlint.config.mjs
-!/dprint.json
 !/typos.toml
 
 # 後に書いた行が優先されるので、許可の行はこの節より上に足す。許可したディレクトリの下でも追跡しない。
