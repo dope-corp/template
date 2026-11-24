@@ -1,0 +1,20 @@
+name: PR Title
+
+on:
+  # squash merge の commit title は PR タイトルになるので、タイトルの変更 (edited) でも検査し直す。
+  # required check は head の commit ごとに付くので、push (synchronize) でも検査する
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: pr-title
+    permissions:
+      contents: read
+    uses: dope-corp/.github/.github/workflows/reusable-pr-title.yaml@1a79bc3ec84074f8cadd4f461e0f45214f508b6c # v1.0.0
