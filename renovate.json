@@ -29,7 +29,7 @@
       "automergeType": "pr"
     },
     {
-      "description": "lock file maintenance には release timestamp が無く、minimumReleaseAge の判定が常に pending になる。mise.lock の更新は mise.toml で固定した版の配布物の情報に限られる。CI が green なら自動 merge する",
+      "description": "lock file maintenance には release timestamp が無く、minimumReleaseAge を付けると常に pending になるので外す。mise lock --bump は lock 済みの版の checksum を書き換えず、exact version で固定した tool の版も変えない。版を major だけで指定した tool (.node-version の Node.js 等) は新しい版に上がり、これには 7 日の猶予がかからない。CI が green なら自動 merge する",
       "matchUpdateTypes": ["lockFileMaintenance"],
       "minimumReleaseAge": null,
       "automerge": true,

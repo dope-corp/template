@@ -33,7 +33,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     create[テンプレートから作成] --> edit[固有の値を書き換える] --> common[merge 方式を設定する] --> vis{公開範囲}
-    vis -- public --> pub[ruleset と<br/>secret scanning を設定する]
+    vis -- public --> pub[ruleset・secret scanning・<br/>LICENSE を設定する]
     vis -- private --> priv[Claude Code の secret を<br/>リポジトリに設定する]
     pub & priv --> setup[clone して<br/>mise install]
 ```
@@ -78,23 +78,23 @@ main を checkout したままの `git commit` は hook が止めるので、作
 CLI の更新 PR は `mise.lock` も、dprint の plugin の更新 PR は checksum も一緒に更新します。`mise.toml` の `[tools]` を手で変えたら、`mise lock` で `mise.lock` を追従させて同じ commit に含めます。`mise.lock` が古いと、手元と CI の `mise install` が失敗します。
 CI もローカルも同じ `mise.lock` からツールを解決するので、CI の検査をローカルで再現できます。
 
-`.gitignore` はホワイトリスト方式 (`*` ですべて無視し、`!` の行で許可したものだけを追跡する) です。新しいファイルを追跡するときは `!` の行を足します。
+`.gitignore` はホワイトリスト方式 (`*` ですべて無視し、`!` の行で許可したものだけを追跡する) です。新しいファイルを追跡するときは、末尾の「追跡しない」節より上に `!` の行を足します。ディレクトリは `!/src/` と `!/src/**` の両方を足します (git は無視したディレクトリの中を見ないので、`!/src/` だけでは中のファイルが追跡されず、`git status` にも出ません)。許可したディレクトリの下でも `.env*`・`*.local.toml` (`mise.local.toml`・`fnox.local.toml`)・`*.pem`・`*.key` は追跡しません。`.gitignore` は追跡済みのファイルには効かないので、既に commit したものは `git rm --cached <path>` で外します。
 
 ## commit 時の検査 (git hook)
 
 hook は `.pre-commit-config.yaml` で定義します。git hook の種類 (`default_install_hook_types`) を変えたら `mise exec -- prek install` で登録し直します。
 
-| hook                                                               | 対象                                | 内容                                                                                                                                                                             | 設定・除外の書き方                                                                         |
-| ------------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [pre-commit-hooks](https://github.com/pre-commit/pre-commit-hooks) | 全ファイル                          | 行末の空白・末尾の改行・改行コードを直し、YAML / JSON / TOML の構文、大きなファイル、conflict の印、macOS / Windows で checkout できない名前、symlink、shebang を検査する        | -                                                                                          |
-| no-commit-to-branch                                                | -                                   | main を checkout しているときの commit を止める (*1)                                                                                                                             | -                                                                                          |
-| mise-task-docs                                                     | `mise.toml`・`README.md`            | README のタスク一覧を生成し直す (`mise run docs`)                                                                                                                                | -                                                                                          |
-| [dprint](https://dprint.dev/)                                      | json / yaml / markdown / toml       | 整形する                                                                                                                                                                         | `dprint.json`                                                                              |
-| [jactionlint](https://jactionlint.jdx.dev/)                        | `.github/`                          | workflow の静的検査。warning も失敗にする (`timeout-minutes` は 30 分まで) と、`run:` の [shellcheck](https://github.com/koalaman/shellcheck) (optional check もすべて有効) (*2) | `.github/jactionlint.yaml`。除外は該当行の上に `# jactionlint ignore=<rule>`               |
-| [zizmor](https://docs.zizmor.sh/)                                  | workflow・`.pre-commit-config.yaml` | セキュリティ監査。`--persona auditor` で全 finding を、`--strict-collection` で解析できない入力を失敗にする (*2)                                                                 | 該当行の `# zizmor: ignore[<audit 名>]`。jactionlint と同じ finding もこちらだけで除外する |
-| [typos](https://github.com/crate-ci/typos)                         | 全ファイル                          | 英単語の typo。綴りは米国英語に揃える                                                                                                                                            | `typos.toml` の `extend-identifiers` (識別子) / `extend-words` (単語)                      |
-| [gitleaks](https://github.com/gitleaks/gitleaks)                   | staged の差分                       | secret を検出する                                                                                                                                                                | -                                                                                          |
-| [commitlint](https://commitlint.js.org/) (`commit-msg`)            | commit message                      | [Conventional Commits](https://www.conventionalcommits.org/) か検査する。node は prek が用意するので、リポジトリに node は要らない                                               | `commitlint.config.mjs`                                                                    |
+| hook                                                               | 対象                                | 内容                                                                                                                                                                             | 設定・除外の書き方                                                                                                                                       |
+| ------------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [pre-commit-hooks](https://github.com/pre-commit/pre-commit-hooks) | 全ファイル                          | 行末の空白・末尾の改行・改行コードを直し、YAML / JSON / TOML の構文、大きなファイル、conflict の印、macOS / Windows で checkout できない名前、symlink、shebang を検査する        | -                                                                                                                                                        |
+| no-commit-to-branch                                                | -                                   | main を checkout しているときの commit を止める (*1)                                                                                                                             | -                                                                                                                                                        |
+| mise-task-docs                                                     | `mise.toml`・`README.md`            | README のタスク一覧を生成し直す (`mise run docs`)                                                                                                                                | -                                                                                                                                                        |
+| [dprint](https://dprint.dev/)                                      | json / yaml / markdown / toml       | 整形する                                                                                                                                                                         | `dprint.json`                                                                                                                                            |
+| [jactionlint](https://jactionlint.jdx.dev/)                        | `.github/`                          | workflow の静的検査。warning も失敗にする (`timeout-minutes` は 30 分まで) と、`run:` の [shellcheck](https://github.com/koalaman/shellcheck) (optional check もすべて有効) (*2) | `.github/jactionlint.yaml`。除外は該当行の上に `# jactionlint ignore=<rule>`                                                                             |
+| [zizmor](https://docs.zizmor.sh/)                                  | workflow・`.pre-commit-config.yaml` | セキュリティ監査。`--persona auditor` で全 finding を、`--strict-collection` で解析できない入力を失敗にする (*2)                                                                 | 該当行の `# zizmor: ignore[<audit 名>]`。jactionlint と同じ finding もこちらだけで除外する                                                               |
+| [typos](https://github.com/crate-ci/typos)                         | 全ファイル                          | 英単語の typo。綴りは米国英語に揃える                                                                                                                                            | `typos.toml` の `extend-identifiers` (識別子) / `extend-words` (単語)                                                                                    |
+| [gitleaks](https://github.com/gitleaks/gitleaks)                   | staged の差分                       | secret を検出する                                                                                                                                                                | 該当行の `gitleaks:allow` コメント。commit 済みの誤検知は `.gitleaksignore` に finding の Fingerprint を書き、`.gitignore` に `!/.gitleaksignore` を足す |
+| [commitlint](https://commitlint.js.org/) (`commit-msg`)            | commit message                      | [Conventional Commits](https://www.conventionalcommits.org/) か検査する。node は prek が用意するので、リポジトリに node は要らない                                               | `commitlint.config.mjs`                                                                                                                                  |
 
 除外は、誤検知と直せない箇所だけに理由のコメントを添えて書きます。
 
@@ -166,6 +166,8 @@ claude setup-token
 gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo "dope-corp/<repo>"
 ```
 
+`claude setup-token` の token は発行から 1 年で失効するので、失効する前に発行し直して secret を更新します。organization secret も同じです。
+
 ## GitHub リポジトリ設定
 
 dope-corp は GitHub の Free plan なので、private リポジトリでは使えない機能があります。
@@ -174,7 +176,8 @@ dope-corp は GitHub の Free plan なので、private リポジトリでは使�
 | -------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------ |
 | merge 方式 (squash のみ・merge 後にブランチを削除・wiki 無効)                          | リポジトリごとに設定する | リポジトリごとに設定する                                           |
 | ruleset (main: PR 必須・CI 必須・squash のみ・force push と削除の禁止・linear history) | リポジトリごとに設定する | 使えない。PR 経由で変更し、CI を確かめて merge する運用で守る      |
-| secret scanning と push protection                                                     | リポジトリごとに設定する | 使えない。hook と CI の gitleaks で検出する                        |
+| secret scanning・push protection                                                       | リポジトリごとに設定する | 使えない。hook と CI の gitleaks で検出する                        |
+| private vulnerability reporting と LICENSE                                             | リポジトリごとに設定する | 不要 (外部の人がコードを見ない)                                    |
 | organization secret (`CLAUDE_CODE_OAUTH_TOKEN`)                                        | 設定済み                 | 使えない。リポジトリの secret にする ([Claude Code](#claude-code)) |
 | CODEOWNERS による reviewer の自動割当                                                  | 働く                     | 働かない                                                           |
 
@@ -207,7 +210,7 @@ gh api -X PATCH "repos/$REPO" --input - <<'JSON'
 JSON
 ```
 
-### ruleset と secret scanning (public のみ)
+### ruleset・secret scanning・LICENSE (public のみ)
 
 required checks は「[CI](#ci)」の job の `name` に合わせます。`verify` job を足したら `{"context": "verify", "integration_id": 15368}` も足します。
 
@@ -253,11 +256,16 @@ gh api -X PATCH "repos/$REPO" --input - <<'JSON'
   }
 }
 JSON
+
+# 脆弱性を issue ではなく非公開で報告してもらう
+gh api -X PUT "repos/$REPO/private-vulnerability-reporting"
 ```
+
+public リポジトリには LICENSE を置き、`.gitignore` に `!/LICENSE` を足します。LICENSE が無いと利用の条件が示されず、第三者はコードを利用できません。
 
 ## template との同期
 
-テンプレートのファイルは作成時に写されるだけで、後からテンプレートに入った変更は届きません。`mise run template-diff` で、共通ファイルを [dope-corp/template](https://github.com/dope-corp/template) の main と比べた差分を表示します。差分にはリポジトリ固有の変更も混ざるので、取り込むものは手で選びます。リポジトリごとに書き換える `README.md`・`.github/CODEOWNERS`・`mise.lock` は比べません。
+テンプレートのファイルは作成時に写されるだけで、後からテンプレートに入った変更は届きません。`mise run template-diff` で、[dope-corp/template](https://github.com/dope-corp/template) の main にあるファイルを手元と比べた差分を表示します。テンプレートに後から足されたファイルは `missing locally` と表示します。差分にはリポジトリ固有の変更も混ざるので、取り込むものは手で選びます。リポジトリごとに書き換える `README.md`・`.github/CODEOWNERS`・`mise.lock` は比べません。
 
 ## 環境変数
 
@@ -270,7 +278,7 @@ JSON
 | 版の指定             | `.node-version` に major だけ (例: `26`) を書き、`.nvmrc` は作らない。Cloudflare のビルド等のツールもこのファイルを読む                                                                                                              |
 | mise                 | `mise.toml` の `[settings]` に `idiomatic_version_file_enable_tools = ["node"]` を足し、`.node-version` を読ませる。`mise lock` で `mise.lock` に node を足し、これらと同じ commit に含める (無いと CI の `mise install` が失敗する) |
 | `.gitignore`         | `!/.node-version` を足す                                                                                                                                                                                                             |
-| minor / patch の更新 | Renovate の `lockFileMaintenance` が `mise.lock` を再解決して、同じ major の最新に追従する                                                                                                                                           |
+| minor / patch の更新 | Renovate の `lockFileMaintenance` が `mise.lock` を再解決して、同じ major の最新に追従する。この更新には 7 日の猶予がかからない                                                                                                      |
 | major の更新         | Renovate の nodenv manager が PR を作る。この PR は `mise.lock` を更新しないので、そのブランチで `mise lock` を実行して commit する                                                                                                  |
 | hook と `verify` job | eslint・typecheck 等の hook と `verify` job は [dope-corp/web-app](https://github.com/dope-corp/web-app) を参照実装にする                                                                                                            |
 

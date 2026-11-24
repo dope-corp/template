@@ -15,6 +15,11 @@ repos:
       - id: check-yaml
       - id: check-json
       - id: check-toml
+      # mise.lock は拡張子が無く TOML と判定されないので、別に検査する
+      - id: check-toml
+        name: check toml (mise.lock)
+        types: [text]
+        files: (^|/)mise\.lock$
       - id: check-added-large-files
       # 派生リポジトリを macOS / Windows でも checkout できるようにする
       - id: check-case-conflict

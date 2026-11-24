@@ -2,6 +2,7 @@
   "excludes": [
     "**/node_modules",
     "**/*-lock.json",
+    "**/pnpm-lock.yaml",
     "mise.lock"
   ],
   "plugins": [
