@@ -14,7 +14,7 @@ CI の一部・Claude の週次レビュー・Renovate の設定は、[dope-corp
 | commit 時の検査 | `.pre-commit-config.yaml` / `commitlint.config.mjs` / `dprint.json` / `typos.toml` | 整形・lint・secret スキャン・commit message の検査                                                                    |
 | CI              | `.github/workflows/ci.yaml` / `pr-title.yaml` / `.github/jactionlint.yaml`         | PR ごとに commit 時の検査 (commit message を除く)・全履歴の secret スキャン・PR タイトルの検査を実行する              |
 | Claude Code     | `.github/workflows/claude.yaml` / `claude-sweep.yaml`                              | `@claude` のメンションへの応答と、週次の差分レビュー                                                                  |
-| 依存の更新      | `renovate.json`                                                                    | dope-corp/.github の Renovate preset を参照する。Renovate が週次で更新の PR を作り、minor / patch は自動で merge する |
+| 依存の更新      | `.github/renovate.json`                                                            | dope-corp/.github の Renovate preset を参照する。Renovate が週次で更新の PR を作り、minor / patch は自動で merge する |
 | secret          | `fnox.toml`                                                                        | secret を環境変数としてコマンドに渡す [fnox](https://fnox.jdx.dev/) の設定                                            |
 | GitHub          | `.github/CODEOWNERS`                                                               | reviewer                                                                                                              |
 | エディタと git  | `.editorconfig` / `.gitattributes` / `.gitignore`                                  | UTF-8・LF・2 スペースに揃える。`.gitignore` はホワイトリスト方式                                                      |
@@ -134,7 +134,7 @@ build / test のあるリポジトリでは、それらを実行する `verify` 
 
 ## 依存の更新 (Renovate)
 
-`renovate.json` が参照する [dope-corp/.github の preset](https://github.com/dope-corp/.github/blob/main/renovate-preset.json) の設定で [Renovate](https://docs.renovatebot.com/) が、毎週月曜 9 時前 (Asia/Tokyo) の時間帯に、更新があれば PR を作ります。版の更新は、公開から 7 日たってから PR になります (pin、`lockFileMaintenance`、脆弱性の alert による更新を除く)。PR のタイトルは Conventional Commits にします。
+`.github/renovate.json` が参照する [dope-corp/.github の preset](https://github.com/dope-corp/.github/blob/main/renovate-preset.json) の設定で [Renovate](https://docs.renovatebot.com/) が、毎週月曜 9 時前 (Asia/Tokyo) の時間帯に、更新があれば PR を作ります。版の更新は、公開から 7 日たってから PR になります (pin、`lockFileMaintenance`、脆弱性の alert による更新を除く)。PR のタイトルは Conventional Commits にします。
 
 | 更新                                           | PR                                                   | merge                                                                        |
 | ---------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ build / test のあるリポジトリでは、それらを実行する `verify` 
 | `mise.lock` の再解決 (`lockFileMaintenance`)   | 単独 (月曜 4 時前)                                   | CI が通れば自動で merge する                                                 |
 | major                                          | 原則として依存ごと                                   | 人手でレビューする                                                           |
 
-リポジトリ固有の設定 (特定の依存の除外や group 等) は、`renovate.json` の `extends` の後に足します。dope-corp/.github の新しい版は、Renovate が `extends` の tag と workflow の参照を更新する PR を作ります (公開から 7 日を待たない)。
+リポジトリ固有の設定 (特定の依存の除外や group 等) は、`.github/renovate.json` の `extends` の後に足します。dope-corp/.github の新しい版は、Renovate が `extends` の tag と workflow の参照を更新する PR を作ります (公開から 7 日を待たない)。
 
 merge は Renovate 自身が全 status check の成功を確かめてから行います (`platformAutomerge: false`)。GitHub の auto-merge に任せると、required status check の無い private リポジトリでは CI を待たずに merge されるためです。そのぶん merge は Renovate の次の実行まで遅れます。public リポジトリで GitHub の auto-merge に切り替えるときは、ruleset で required status check を設定し、リポジトリの Allow auto-merge を有効にしてから `platformAutomerge` の行を消します。
 

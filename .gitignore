@@ -6,6 +6,7 @@
 !/.github/**/
 !/.github/CODEOWNERS
 !/.github/jactionlint.yaml
+!/.github/renovate.json
 !/.github/workflows/ci.yaml
 !/.github/workflows/claude.yaml
 !/.github/workflows/claude-sweep.yaml
@@ -22,7 +23,6 @@
 !/commitlint.config.mjs
 !/dprint.json
 !/typos.toml
-!/renovate.json
 
 # 後に書いた行が優先されるので、許可の行はこの節より上に足す。許可したディレクトリの下でも追跡しない。
 # 環境変数は mise.toml の [env] と fnox で渡し、.env は使わない
