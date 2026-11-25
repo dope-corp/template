@@ -16,7 +16,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# job の name は required status check の名前になる。変えるときは ruleset と .github/jactionlint.yaml の required-checks も揃える
+# job の name は required status check の名前になる (reusable workflow を呼ぶ job は "<この job の name> / <本体の job の name>")。
+# 変えるときは ruleset と .github/jactionlint.yaml の required-checks も揃える
 jobs:
   prek:
     name: prek
@@ -51,18 +52,6 @@ jobs:
 
   gitleaks:
     name: gitleaks
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # gitleaks で全履歴をスキャンするため
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Install mise
-        uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
-
-      - name: Run gitleaks
-        run: mise exec -- gitleaks git --redact -v .
+    permissions:
+      contents: read
+    uses: dope-corp/.github/.github/workflows/reusable-gitleaks.yaml@1a79bc3ec84074f8cadd4f461e0f45214f508b6c # v1.0.0

@@ -15,6 +15,11 @@ repos:
       - id: check-yaml
       - id: check-json
       - id: check-toml
+      # mise.lock は拡張子が無く TOML と判定されないので、別に検査する
+      - id: check-toml
+        name: check toml (mise.lock)
+        types: [text]
+        files: (^|/)mise\.lock$
       - id: check-added-large-files
       # 派生リポジトリを macOS / Windows でも checkout できるようにする
       - id: check-case-conflict
@@ -41,7 +46,7 @@ repos:
       - id: dprint-fmt
         name: Format json/yaml/markdown/toml with dprint
         language: system
-        # --allow-no-files: 渡されたファイルがすべて dprint.json の excludes に当たるとき
+        # --allow-no-files: 渡されたファイルがすべて .config/dprint.json の excludes に当たるとき
         # (mise.lock だけの commit 等) に exit 14 (No files found) で失敗しないようにする
         entry: mise exec -- dprint fmt --allow-no-files
         types_or: [json, yaml, markdown, toml]
@@ -79,5 +84,6 @@ repos:
         language: node
         additional_dependencies:
           ["@commitlint/cli@21.2.4", "@commitlint/config-conventional@21.2.4"]
-        entry: commitlint --edit
+        # commitlint は .config/ の設定を自動では探さない。prek は commit message のファイルを最後に渡すので、--edit を最後に置く
+        entry: commitlint --config .config/commitlint.config.mjs --edit
         stages: [commit-msg]

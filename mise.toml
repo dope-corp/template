@@ -26,40 +26,32 @@ run = "prek run --all-files --skip no-commit-to-branch"
 description = "README.md のタスク一覧を mise.toml から生成し直す"
 run = "mise generate task-docs --inject --output README.md"
 
-# README.md / CODEOWNERS / mise.lock はリポジトリごとに書き換えるので比較しない
 [tasks.template-diff]
 description = "共通ファイルを dope-corp/template の main と比べて差分を表示する"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 repo="dope-corp/template"
-files=(
-  .editorconfig .gitattributes .gitignore .pre-commit-config.yaml commitlint.config.mjs
-  dprint.json fnox.toml mise.toml renovate.json typos.toml
-  .github/PULL_REQUEST_TEMPLATE.md .github/jactionlint.yaml
-  .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug_report.yaml .github/ISSUE_TEMPLATE/feature_request.yaml
-  .github/workflows/ci.yaml .github/workflows/claude.yaml .github/workflows/claude-sweep.yaml
-)
-err="$(mktemp)"
-trap 'rm -f "${err}"' EXIT
+# 比べる対象は template の main にあるファイル。README.md / CODEOWNERS / mise.lock はリポジトリごとに書き換えるので比べない
+# 一覧と内容を同じ版で比べ、パスを URL に埋め込まないよう、内容は blob の SHA で取得する
+entries="$(gh api "repos/${repo}/git/trees/main?recursive=1" \
+  --jq '.tree[] | select(.type == "blob") | select(.path != "README.md" and .path != ".github/CODEOWNERS" and .path != "mise.lock") | "\(.sha)\t\(.path)"')"
+upstream="$(mktemp)"
+trap 'rm -f "${upstream}"' EXIT
 failed=0
-for f in "${files[@]}"; do
-  if ! upstream="$(gh api "repos/${repo}/contents/${f}" -H 'Accept: application/vnd.github.raw+json' 2>"${err}")"; then
-    # 404 は template に無いファイルなので飛ばす。それ以外 (未認証・通信障害・rate limit) は比較できていないので失敗にする
-    if grep -q 'HTTP 404' "${err}"; then
-      echo "!! ${f}: not in ${repo} main (skipped)"
-    else
-      echo "!! ${f}: fetch failed: $(cat "${err}")" >&2
-      failed=1
-    fi
-    continue
-  fi
+while IFS=$'\t' read -r sha f; do
   if [[ ! -f "${f}" ]]; then
     echo "!! ${f}: missing locally"
     continue
   fi
-  diff -u --label "template/${f}" --label "${f}" <(printf '%s\n' "${upstream}") "${f}" || true
-done
+  # 取得できないファイルは比べられていないので、最後に失敗にする
+  if ! gh api "repos/${repo}/git/blobs/${sha}" -H 'Accept: application/vnd.github.raw+json' > "${upstream}"; then
+    echo "!! ${f}: fetch failed" >&2
+    failed=1
+    continue
+  fi
+  diff -u --label "template/${f}" --label "${f}" "${upstream}" "${f}" || true
+done <<< "${entries}"
 exit "${failed}"
 '''
 
