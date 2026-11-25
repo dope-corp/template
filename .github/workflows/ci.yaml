@@ -54,4 +54,4 @@ jobs:
     name: gitleaks
     permissions:
       contents: read
-    uses: dope-corp/.github/.github/workflows/reusable-gitleaks.yaml@fb06f5fe298c4905e9453b0441aa09fe4f59847f # v1.0.6
+    uses: dope-corp/.github/.github/workflows/reusable-gitleaks.yaml@4c4dc1f9a36faa6cc40cd7949352907748c9fc25 # v1.0.7
