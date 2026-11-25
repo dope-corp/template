@@ -1,4 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>dope-corp/.github:renovate-preset#v1.0.7"]
+  "extends": ["github>dope-corp/.github:renovate-preset#v1.0.8"]
 }
