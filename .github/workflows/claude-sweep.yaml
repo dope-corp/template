@@ -18,7 +18,7 @@ jobs:
       contents: read # checkout と差分の取得のため
       actions: read # 前回成功した run を gh run list で引くため
       issues: write # 指摘を issue に起票するため
-    uses: dope-corp/.github/.github/workflows/reusable-claude-sweep.yaml@3fc5e13141539f16514fb4d734e27ba145254421 # v1.0.4
+    uses: dope-corp/.github/.github/workflows/reusable-claude-sweep.yaml@192fa97c0b3221b670f1dc5621c59e8e2e2a70a0 # v1.0.5
     secrets:
       # environment に移さない。Free plan の private リポジトリでは environment を使えず、public リポジトリで
       # required reviewers を付けると週次の sweep のたびに承認が要るため
