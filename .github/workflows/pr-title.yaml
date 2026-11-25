@@ -17,4 +17,4 @@ jobs:
     name: pr-title
     permissions:
       contents: read
-    uses: dope-corp/.github/.github/workflows/reusable-pr-title.yaml@48011ef4b5d93f8545b752d71f945505c8a70770 # v1.0.1
+    uses: dope-corp/.github/.github/workflows/reusable-pr-title.yaml@f090aa1db7ee315faab252e6f9c1aa4976604d72 # v1.0.2
