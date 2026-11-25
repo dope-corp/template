@@ -3,7 +3,7 @@
     "**/node_modules",
     "**/*-lock.json",
     "**/pnpm-lock.yaml",
-    "mise.lock"
+    "../mise.lock"
   ],
   "plugins": [
     "https://plugins.dprint.dev/json-0.26.0.wasm@9abcd6eb43b3d04655649090c2e7ad14948da6acfe0374cb47ccd9eb3c48903d",
